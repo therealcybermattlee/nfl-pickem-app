@@ -136,11 +136,21 @@ model Game {
   homeScore   Int?
   awayScore   Int?
   winnerTeamId String?
+  
+  // Odds fields
+  homeSpread      Float?
+  awaySpread      Float?
+  homeMoneyline   Int?
+  awayMoneyline   Int?
+  overUnder       Float?
+  oddsProvider    String?
+  oddsUpdatedAt   DateTime?
 
   homeTeam Team @relation("HomeTeam", fields: [homeTeamId], references: [id])
   awayTeam Team @relation("AwayTeam", fields: [awayTeamId], references: [id])
   
   picks Pick[]
+  oddsHistory OddsHistory[]
 
   @@unique([week, season, homeTeamId, awayTeamId])
   @@map("games")
@@ -162,4 +172,21 @@ model Pick {
 
   @@unique([userId, gameId])
   @@map("picks")
+}
+
+model OddsHistory {
+  id              String   @id @default(cuid())
+  gameId          String
+  homeSpread      Float?
+  awaySpread      Float?
+  homeMoneyline   Int?
+  awayMoneyline   Int?
+  overUnder       Float?
+  provider        String
+  timestamp       DateTime @default(now())
+  
+  game            Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  
+  @@index([gameId, timestamp])
+  @@map("odds_history")
 }
