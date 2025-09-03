@@ -190,3 +190,20 @@ model OddsHistory {
   @@index([gameId, timestamp])
   @@map("odds_history")
 }
+
+model Cache {
+  id              String   @id @default(cuid())
+  key             String   @unique
+  data            String   // JSON serialized data
+  expiresAt       DateTime
+  version         Int      @default(1)
+  tags            String?  // Comma-separated tags
+  hitCount        Int      @default(0)
+  createdAt       DateTime @default(now())
+  lastAccessedAt  DateTime @default(now())
+  
+  @@index([key])
+  @@index([expiresAt])
+  @@index([tags])
+  @@map("cache")
+}
