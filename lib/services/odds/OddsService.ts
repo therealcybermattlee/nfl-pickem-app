@@ -21,8 +21,8 @@ export class OddsService {
     if (!OddsService.instance) {
       // Initialize with The Odds API provider
       const config = {
-        apiKey: process.env.ODDS_API_KEY || '',
-        baseUrl: 'https://api.the-odds-api.com/v4'
+        apiKey: process.env.THE_ODDS_API_KEY || '',
+        baseUrl: process.env.THE_ODDS_API_BASE_URL || 'https://api.the-odds-api.com/v4'
       };
       
       const provider = new TheOddsApiProvider(config);

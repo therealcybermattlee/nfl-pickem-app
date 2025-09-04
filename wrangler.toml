@@ -1,0 +1,33 @@
+name = "nfl-pickem-app"
+compatibility_date = "2024-09-04"
+compatibility_flags = ["nodejs_compat"]
+
+# Development environment
+[env.development]
+vars = { NODE_ENV = "development" }
+
+# Production environment
+[env.production]
+route = "pickem.leefamilysso.com/*"
+vars = { 
+  NODE_ENV = "production",
+  NEXTAUTH_URL = "https://pickem.leefamilysso.com",
+  THE_ODDS_API_BASE_URL = "https://api.the-odds-api.com/v4",
+  CURRENT_NFL_SEASON = "2025",
+  CURRENT_NFL_WEEK = "1"
+}
+
+# D1 database binding (will be configured after D1 creation)
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "nfl-pickem-db"
+database_id = "" # Will be filled after creating D1 database
+
+# KV storage for caching (optional)
+# [[env.production.kv_namespaces]]
+# binding = "CACHE"
+# id = ""
+
+# Secrets to be set via wrangler secret put
+# THE_ODDS_API_KEY
+# NEXTAUTH_SECRET

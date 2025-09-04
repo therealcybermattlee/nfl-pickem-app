@@ -10,7 +10,7 @@ export type GameWithTeams = Game & {
 }
 
 export type GameWithTeamsAndPicks = GameWithTeams & {
-  picks: Pick[]
+  picks: (Pick & { user: User; team: Team })[]
 }
 
 export type PickWithGame = Pick & {

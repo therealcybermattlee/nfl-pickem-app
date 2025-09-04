@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma, createPrismaClientWithD1 } from '@/lib/prisma'
 import { getCurrentNFLWeek, getCurrentNFLSeason } from '@/lib/nfl-api'
+
+// Enable edge runtime for Cloudflare Workers compatibility
+export const runtime = 'edge'
+
+// Helper function to get Prisma client (local or D1)
+function getPrismaClient(request: NextRequest) {
+  // In Cloudflare Workers, we'll have access to the D1 binding through context
+  if (process.env.NODE_ENV === 'production' && typeof globalThis.process === 'undefined') {
+    // This will be replaced with actual D1 binding access in Workers deployment
+    // For now, return the standard client
+    return prisma
+  }
+  return prisma
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,7 +25,10 @@ export async function GET(request: NextRequest) {
     const targetWeek = week ? parseInt(week) : getCurrentNFLWeek()
     const targetSeason = season ? parseInt(season) : getCurrentNFLSeason()
     
-    const games = await prisma.game.findMany({
+    // Get appropriate Prisma client (local or D1)
+    const db = getPrismaClient(request)
+    
+    const games = await db.game.findMany({
       where: {
         week: targetWeek,
         season: targetSeason
@@ -67,10 +84,13 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
     
+    // Get appropriate Prisma client (local or D1)
+    const db = getPrismaClient(request)
+    
     // Check if teams exist
     const [homeTeam, awayTeam] = await Promise.all([
-      prisma.team.findUnique({ where: { id: homeTeamId } }),
-      prisma.team.findUnique({ where: { id: awayTeamId } })
+      db.team.findUnique({ where: { id: homeTeamId } }),
+      db.team.findUnique({ where: { id: awayTeamId } })
     ])
     
     if (!homeTeam || !awayTeam) {
@@ -80,7 +100,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
     
-    const game = await prisma.game.create({
+    const game = await db.game.create({
       data: {
         week: parseInt(week),
         season: parseInt(season),

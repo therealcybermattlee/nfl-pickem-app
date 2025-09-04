@@ -1,11 +1,22 @@
 import { NextAuthOptions } from 'next-auth'
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import CredentialsProvider from 'next-auth/providers/credentials'
+import MicrosoftProvider from 'next-auth/providers/microsoft'
 import bcrypt from 'bcryptjs'
 import { prisma } from './prisma'
 
 export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(prisma),
   providers: [
+    MicrosoftProvider({
+      clientId: process.env.MICROSOFT_CLIENT_ID!,
+      clientSecret: process.env.MICROSOFT_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          scope: 'openid profile email User.Read',
+        },
+      },
+    }),
     CredentialsProvider({
       name: 'credentials',
       credentials: {
@@ -55,7 +66,7 @@ export const authOptions: NextAuthOptions = {
     signUp: '/auth/signup'
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
         token.username = user.username
         token.isAdmin = user.isAdmin
@@ -63,12 +74,24 @@ export const authOptions: NextAuthOptions = {
       return token
     },
     async session({ session, token }) {
-      if (token) {
+      if (token && session.user) {
         session.user.id = token.sub!
         session.user.username = token.username as string
         session.user.isAdmin = token.isAdmin as boolean
       }
       return session
+    },
+    async signIn({ user, account, profile }) {
+      // For OAuth providers, ensure user has required fields
+      if (account?.provider === 'microsoft') {
+        // Generate username from email if not provided
+        if (!user.username && user.email) {
+          const emailUsername = user.email.split('@')[0]
+          user.username = emailUsername
+        }
+        return true
+      }
+      return true
     }
   }
 }

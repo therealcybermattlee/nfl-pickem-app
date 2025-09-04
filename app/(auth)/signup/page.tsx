@@ -17,7 +17,30 @@ export default function SignUp() {
   })
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isOAuthLoading, setIsOAuthLoading] = useState(false)
   const router = useRouter()
+
+  const handleMicrosoftSignUp = async () => {
+    setIsOAuthLoading(true)
+    setError('')
+    
+    try {
+      const result = await signIn('microsoft', {
+        callbackUrl: '/dashboard',
+        redirect: false
+      })
+      
+      if (result?.error) {
+        setError('Microsoft sign-up failed. Please try again.')
+      } else if (result?.url) {
+        window.location.href = result.url
+      }
+    } catch (error) {
+      setError('Something went wrong with Microsoft sign-up.')
+    } finally {
+      setIsOAuthLoading(false)
+    }
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -93,7 +116,42 @@ export default function SignUp() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form className="space-y-4" onSubmit={handleSubmit}>
+        <div className="space-y-4">
+          {/* Microsoft OAuth Sign Up */}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleMicrosoftSignUp}
+            disabled={isOAuthLoading || isLoading}
+            className="w-full"
+          >
+            {isOAuthLoading ? (
+              'Signing up with Microsoft...'
+            ) : (
+              <>
+                <svg className="w-4 h-4 mr-2" viewBox="0 0 21 21">
+                  <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
+                  <rect x="12" y="1" width="9" height="9" fill="#00a4ef"/>
+                  <rect x="1" y="12" width="9" height="9" fill="#00dd67"/>
+                  <rect x="12" y="12" width="9" height="9" fill="#ffb900"/>
+                </svg>
+                Continue with Microsoft
+              </>
+            )}
+          </Button>
+
+          {/* Divider */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">Or create account with email</span>
+            </div>
+          </div>
+        </div>
+
+        <form className="space-y-4 mt-4" onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="name" className="text-sm font-medium">

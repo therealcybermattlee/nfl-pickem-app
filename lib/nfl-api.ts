@@ -230,18 +230,41 @@ export async function getAllTeams() {
 
 export function getCurrentNFLWeek(): number {
   const now = new Date()
-  const nflSeasonStart = new Date(now.getFullYear(), 8, 1) // September 1st
   
-  // NFL season typically starts in early September
-  if (now < nflSeasonStart) {
-    return 1
+  // Check environment variable first
+  const envWeek = process.env.CURRENT_NFL_WEEK
+  const envSeason = process.env.CURRENT_NFL_SEASON
+  
+  if (envWeek && envSeason) {
+    return parseInt(envWeek, 10)
   }
   
-  const weeksSinceStart = Math.floor((now.getTime() - nflSeasonStart.getTime()) / (7 * 24 * 60 * 60 * 1000))
-  return Math.min(Math.max(weeksSinceStart + 1, 1), 18) // NFL regular season is 18 weeks
+  // 2025 NFL Season specific dates
+  const nfl2025SeasonStart = new Date('2025-09-04') // Week 1 kickoff
+  const nfl2025Week2 = new Date('2025-09-11')
+  const nfl2025Week3 = new Date('2025-09-18')
+  
+  if (now < nfl2025SeasonStart) {
+    return 1 // Pre-season or waiting for season start
+  }
+  
+  // Calculate week based on actual NFL calendar
+  const daysSinceStart = Math.floor((now.getTime() - nfl2025SeasonStart.getTime()) / (24 * 60 * 60 * 1000))
+  const weeksSinceStart = Math.floor(daysSinceStart / 7)
+  
+  // NFL regular season is 18 weeks, then playoffs
+  const calculatedWeek = Math.min(weeksSinceStart + 1, 18)
+  
+  return Math.max(calculatedWeek, 1)
 }
 
 export function getCurrentNFLSeason(): number {
+  // Check environment variable first
+  const envSeason = process.env.CURRENT_NFL_SEASON
+  if (envSeason) {
+    return parseInt(envSeason, 10)
+  }
+  
   const now = new Date()
   const currentYear = now.getFullYear()
   

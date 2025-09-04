@@ -1,184 +1,167 @@
-# 🚀 NFL Pick'em App - Deployment Guide
+# Cloudflare Workers + Zero Trust Deployment Guide
 
-## Quick Deploy to Vercel
+## Prerequisites
+- Cloudflare account with Workers and Zero Trust access
+- Domain `leefamilysso.com` managed by Cloudflare
+- Wrangler CLI installed and authenticated
 
-### 1. Prepare Database
+## Step 1: Database Migration to Cloudflare D1
+
+### 1.1 Create D1 Database
 ```bash
-# Create production PostgreSQL database
-# Get connection string format: postgresql://user:pass@host:port/dbname
+# Login to Cloudflare (if not already done)
+npx wrangler login
+
+# Create D1 database
+yarn run db:d1-create
+
+# Note the database ID and update wrangler.toml
 ```
 
-### 2. Deploy to Vercel
+### 1.2 Export Current Data
 ```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Login and deploy
-vercel login
-vercel
-
-# Follow prompts:
-# - Set up new project
-# - Import from GitHub
-# - Configure build settings
+# Export current SQLite data
+yarn run db:export
 ```
 
-### 3. Environment Variables in Vercel
-Add these in Vercel dashboard → Settings → Environment Variables:
-
-```env
-DATABASE_URL=postgresql://user:pass@host:port/dbname
-NEXTAUTH_SECRET=your-production-secret-key
-NEXTAUTH_URL=https://your-app.vercel.app
-CURRENT_NFL_SEASON=2024
-CURRENT_NFL_WEEK=1
-```
-
-### 4. Database Setup
+### 1.3 Import to D1
 ```bash
-# After deployment, run migrations
-npx prisma db push
-npx prisma db seed
+# Import data to D1 database
+yarn run db:d1-migrate
 ```
 
-### 5. Initial Data Sync
-- Visit your deployed app
-- Create admin user
-- Set `isAdmin: true` in database
-- Run sync from admin panel or API
+## Step 2: Configure Environment Variables
 
-## Alternative: Railway Deployment
-
-### 1. Database on Railway
-- Create new Railway project
-- Add PostgreSQL service
-- Copy DATABASE_URL
-
-### 2. Deploy App
-- Connect GitHub repo
-- Set environment variables
-- Deploy automatically
-
-## Environment Variables Reference
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `DATABASE_URL` | PostgreSQL connection | `postgresql://...` |
-| `NEXTAUTH_SECRET` | Session encryption key | Random 32+ chars |
-| `NEXTAUTH_URL` | App URL | `https://yourapp.com` |
-| `CURRENT_NFL_SEASON` | NFL season year | `2024` |
-| `CURRENT_NFL_WEEK` | Current week | `1-18` |
-
-## Post-Deployment Setup
-
-### 1. Create Admin User
-```sql
--- In your database
-UPDATE users SET "isAdmin" = true WHERE email = 'your@email.com';
+### 2.1 Set Secrets
+```bash
+# Set sensitive environment variables
+npx wrangler secret put THE_ODDS_API_KEY --env production
+npx wrangler secret put NEXTAUTH_SECRET --env production
 ```
 
-### 2. Initial Data Sync
-- Visit `/admin` with admin user
-- Click "Sync Latest Games"
-- Or call API: `POST /api/sync/games`
+### 2.2 Update wrangler.toml
+Update the `database_id` in wrangler.toml with the actual D1 database ID from Step 1.1.
 
-### 3. Test Core Features
-- User registration/login
-- Game data display
-- Pick functionality
-- Leaderboard calculation
+## Step 3: Cloudflare Zero Trust Setup
 
-## Monitoring & Maintenance
+### 3.1 Create Access Application
+1. Go to Cloudflare Dashboard → Zero Trust → Access → Applications
+2. Add Application:
+   - **Application name:** NFL Pick'em
+   - **Subdomain:** pickem
+   - **Domain:** leefamilysso.com
+   - **Path:** /*
 
-### Database Monitoring
-- Monitor connection pool usage
-- Set up automated backups
-- Check query performance
+### 3.2 Configure Access Policies
+Create policies for who can access the application:
+- **Policy name:** "Lee Family Members"
+- **Action:** Allow
+- **Rules:** Add emails or groups who should have access
 
-### Application Monitoring
-- Set up error tracking (Sentry)
-- Monitor API response times
-- Track user activity
+### 3.3 Identity Provider (Optional)
+Configure identity providers if needed:
+- Microsoft 365
+- Google Workspace
+- Generic SAML/OIDC
 
-### Regular Tasks
-- Sync game data (can be automated)
-- Update scores during game days
-- Monitor for API rate limits
+## Step 4: Domain Configuration
 
-## Production Optimizations
+### 4.1 DNS Setup
+Ensure `leefamilysso.com` is configured in Cloudflare DNS.
 
-### Performance
-```javascript
-// Consider adding to next.config.js
-module.exports = {
-  images: {
-    domains: ['a.espncdn.com'], // ESPN logos
-  },
-  experimental: {
-    serverComponentsExternalPackages: ['@prisma/client']
-  }
-}
+### 4.2 SSL/TLS Settings
+1. Go to SSL/TLS → Overview
+2. Set encryption mode to "Full" or "Full (strict)"
+3. Enable "Always Use HTTPS"
+
+## Step 5: Deploy to Workers
+
+### 5.1 Build for Workers
+```bash
+# Generate Prisma client with D1 adapter support
+yarn run db:generate
+
+# Build Next.js for Workers
+yarn run workers:build
 ```
 
-### Caching
-- Enable API route caching for static data
-- Cache team logos and static assets
-- Consider Redis for session storage
+### 5.2 Deploy
+```bash
+# Deploy to Cloudflare Workers
+yarn run workers:deploy
+```
 
-### Security
-- Enable HTTPS only
-- Set proper CORS headers
-- Rate limit API endpoints
-- Validate all inputs
+### 5.3 Configure Custom Domain
+```bash
+# Add custom domain to Worker
+npx wrangler subdomain add pickem.leefamilysso.com
+```
+
+## Step 6: Verification
+
+### 6.1 Test Access
+1. Navigate to https://pickem.leefamilysso.com
+2. Verify Cloudflare Access authentication works
+3. Test application functionality
+
+### 6.2 Database Operations
+- Verify games data displays correctly
+- Test picks submission
+- Check odds sync functionality
+
+## Step 7: Post-Deployment Configuration
+
+### 7.1 Update OAuth Redirect URIs
+If using Microsoft OAuth, update redirect URIs:
+- Development: `http://localhost:3000/api/auth/callback/microsoft`
+- Production: `https://pickem.leefamilysso.com/api/auth/callback/microsoft`
+
+### 7.2 Configure Monitoring
+Set up Cloudflare Analytics and error tracking:
+- Workers Analytics
+- Real User Monitoring (RUM)
+- Error tracking via Sentry (optional)
 
 ## Troubleshooting
 
 ### Common Issues
+1. **D1 Database Connection Errors**
+   - Verify database ID in wrangler.toml
+   - Check D1 binding configuration
 
-**Database Connection Errors**
-- Check DATABASE_URL format
-- Verify database is accessible
-- Check connection pool limits
+2. **Zero Trust Authentication Loops**
+   - Verify Access application configuration
+   - Check policy rules and identity providers
 
-**NextAuth Issues**
-- Verify NEXTAUTH_SECRET is set
-- Check NEXTAUTH_URL matches domain
-- Confirm callback URLs
+3. **NextAuth Session Issues**
+   - Ensure NEXTAUTH_SECRET is set
+   - Verify NEXTAUTH_URL matches production domain
 
-**Game Sync Issues**
-- ESPN API may have rate limits
-- Check network connectivity
-- Verify team data exists
+4. **Edge Runtime Compatibility**
+   - Check for Node.js-specific code in API routes
+   - Verify all dependencies support edge runtime
 
-**Build Failures**
-- Check TypeScript errors
-- Verify all dependencies installed
-- Check Prisma schema validity
+### Debug Commands
+```bash
+# Check deployment logs
+npx wrangler tail --env production
 
-### Debug Mode
-```env
-# Add for debugging
-DEBUG=1
-NODE_ENV=development
+# Test D1 database connectivity
+npx wrangler d1 execute nfl-pickem-db --command="SELECT COUNT(*) FROM games" --env production
+
+# Local development with D1
+yarn run workers:dev
 ```
 
-## Scaling Considerations
+## Architecture Benefits
 
-### Database
-- Connection pooling (PgBouncer)
-- Read replicas for heavy queries
-- Index optimization for leaderboards
+✅ **Global Performance:** Edge deployment across 300+ locations  
+✅ **Enterprise Security:** Zero Trust access control  
+✅ **Cost Efficiency:** Pay-per-request serverless model  
+✅ **Auto Scaling:** Handles traffic spikes automatically  
+✅ **High Availability:** 99.9%+ uptime SLA  
+✅ **DDoS Protection:** Built-in Cloudflare security  
 
-### Application
-- API rate limiting
-- Background job processing
-- CDN for static assets
-
-### Infrastructure
-- Load balancing for high traffic
-- Monitoring and alerting
-- Automated deployments
-
----
-
-**Ready to deploy?** Follow the quick Vercel guide above! 🚀
+## Support Contacts
+- Cloudflare Support: For infrastructure issues
+- Developer: For application-specific problems

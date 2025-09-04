@@ -1,10 +1,10 @@
-import { GameWithTeams } from '@/types'
+import { GameWithTeams, GameWithTeamsAndPicks } from '@/types'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { format } from 'date-fns'
 
 interface GameCardProps {
-  game: GameWithTeams
+  game: GameWithTeams | GameWithTeamsAndPicks
   showPicks?: boolean
 }
 
@@ -171,7 +171,7 @@ export function GameCard({ game, showPicks = false }: GameCardProps) {
         )}
 
         {/* Pick Information */}
-        {showPicks && game.picks && game.picks.length > 0 && (
+        {showPicks && 'picks' in game && game.picks && game.picks.length > 0 && (
           <div className="mt-3 pt-3 border-t">
             <div className="text-xs text-muted-foreground mb-1">Recent Picks:</div>
             <div className="flex flex-wrap gap-1">
