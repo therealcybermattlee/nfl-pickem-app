@@ -8,13 +8,8 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  experimental: {
-    // Enable edge runtime for API routes
-    runtime: 'experimental-edge',
-  },
-  // Optimize for Workers
-  output: 'export',
-  trailingSlash: true,
+  // Removed experimental runtime - will be set per API route instead
+  // Optimize for Workers - removed 'output: export' to support dynamic API routes
   images: {
     unoptimized: true,
   },

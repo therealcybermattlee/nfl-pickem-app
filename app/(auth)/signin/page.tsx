@@ -43,21 +43,29 @@ export default function SignIn() {
     setError('')
 
     try {
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false
+      // Call our working login endpoint
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password
+        })
       })
 
-      if (result?.error) {
-        setError('Invalid credentials')
-      } else {
-        const session = await getSession()
-        if (session?.user?.isAdmin) {
+      const result = await response.json()
+
+      if (result.success) {
+        // Successful login - redirect based on user role
+        if (result.user.isAdmin) {
           router.push('/admin')
         } else {
           router.push('/dashboard')
         }
+      } else {
+        setError(result.error || 'Login failed')
       }
     } catch (error) {
       setError('Something went wrong. Please try again.')

@@ -1,16 +1,17 @@
 import { NextAuthOptions } from 'next-auth'
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import MicrosoftProvider from 'next-auth/providers/microsoft'
+import AzureADProvider from 'next-auth/providers/azure-ad'
 import bcrypt from 'bcryptjs'
 import { prisma } from './prisma'
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
-    MicrosoftProvider({
+    AzureADProvider({
       clientId: process.env.MICROSOFT_CLIENT_ID!,
       clientSecret: process.env.MICROSOFT_CLIENT_SECRET!,
+      tenantId: process.env.MICROSOFT_TENANT_ID!,
       authorization: {
         params: {
           scope: 'openid profile email User.Read',
@@ -83,7 +84,7 @@ export const authOptions: NextAuthOptions = {
     },
     async signIn({ user, account, profile }) {
       // For OAuth providers, ensure user has required fields
-      if (account?.provider === 'microsoft') {
+      if (account?.provider === 'azure-ad') {
         // Generate username from email if not provided
         if (!user.username && user.email) {
           const emailUsername = user.email.split('@')[0]
