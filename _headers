@@ -1,0 +1,11 @@
+# Headers for NextAuth.js compatibility
+/api/auth/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+# Enable CORS for API routes
+/api/*
+  Access-Control-Allow-Origin: https://pickem.leefamilysso.com
+  Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+  Access-Control-Allow-Headers: Content-Type, Authorization
