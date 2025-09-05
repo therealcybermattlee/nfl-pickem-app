@@ -8,8 +8,6 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Removed experimental runtime - will be set per API route instead
-  // Optimize for Workers - removed 'output: export' to support dynamic API routes
   images: {
     unoptimized: true,
   },

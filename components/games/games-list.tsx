@@ -33,13 +33,22 @@ export function GamesList({ week, season, showPicks = false }: GamesListProps) {
       const response = await fetch(`/api/games?${params.toString()}`)
       const data = await response.json()
       
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to fetch games')
+      // Handle both array response and object response formats
+      if (Array.isArray(data)) {
+        // Direct array response
+        setGames(data)
+        setCurrentWeek(week || 1)
+        setCurrentSeason(season || new Date().getFullYear())
+      } else {
+        // Object response format
+        if (!data.success) {
+          throw new Error(data.error || 'Failed to fetch games')
+        }
+        
+        setGames(data.games || [])
+        setCurrentWeek(data.week || week || 1)
+        setCurrentSeason(data.season || season || new Date().getFullYear())
       }
-      
-      setGames(data.games)
-      setCurrentWeek(data.week)
-      setCurrentSeason(data.season)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
@@ -53,7 +62,8 @@ export function GamesList({ week, season, showPicks = false }: GamesListProps) {
       const response = await fetch('/api/sync/games', { method: 'POST' })
       const data = await response.json()
       
-      if (!data.success) {
+      // Handle both array response and object response formats
+      if (!Array.isArray(data) && !data.success) {
         throw new Error(data.error || 'Failed to sync games')
       }
       

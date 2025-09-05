@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server'
 import { syncCurrentWeek, syncGamesFromESPN, updateGameScores } from '@/lib/game-sync'
 import { getCurrentNFLWeek, getCurrentNFLSeason } from '@/lib/nfl-api'

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { JobQueue } from '@/lib/jobs/JobQueue'
 import { JobStatus } from '@/lib/jobs/jobs/BaseJob'
 
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)

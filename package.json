@@ -18,7 +18,9 @@
     "workers:build": "@cloudflare/next-on-pages",
     "db:export": "sqlite3 prisma/dev.db .dump > database-dump.sql",
     "db:d1-create": "wrangler d1 create nfl-pickem-db",
-    "db:d1-migrate": "wrangler d1 execute nfl-pickem-db --file=./database-dump.sql --env production"
+    "db:d1-migrate": "wrangler d1 execute nfl-pickem-db --file=./database-dump.sql --env production",
+    "test:api": "node scripts/test-api-contracts.js",
+    "test:api:production": "TEST_BASE_URL=https://your-production-url.com node scripts/test-api-contracts.js"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

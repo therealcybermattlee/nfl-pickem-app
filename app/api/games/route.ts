@@ -3,7 +3,6 @@ import { prisma, createPrismaClientWithD1 } from '@/lib/prisma'
 import { getCurrentNFLWeek, getCurrentNFLSeason } from '@/lib/nfl-api'
 
 // Enable edge runtime for Cloudflare Workers compatibility
-export const runtime = 'edge'
 
 // Helper function to get Prisma client (local or D1)
 function getPrismaClient(request: NextRequest) {

@@ -57,9 +57,12 @@ export default function Dashboard() {
         gamesResponse.json()
       ])
       
-      if (picksData.success && gamesData.success) {
-        const picks = picksData.picks
-        const games = gamesData.games
+      // Handle both array and object response formats
+      const picks = Array.isArray(picksData) ? picksData : (picksData.success ? picksData.picks : [])
+      const games = Array.isArray(gamesData) ? gamesData : (gamesData.success ? gamesData.games : [])
+      
+      // Only proceed if we have valid data
+      if (picks && games) {
         
         const completedGames = picks.filter((p: any) => 
           games.find((g: any) => g.id === p.gameId)?.isCompleted
@@ -81,6 +84,8 @@ export default function Dashboard() {
           winRate: completedGames > 0 ? Math.round((correctPicks / completedGames) * 100) : 0,
           upcomingGames
         })
+      } else {
+        console.error('Invalid data format received from API')
       }
     } catch (error) {
       console.error('Failed to fetch user stats:', error)

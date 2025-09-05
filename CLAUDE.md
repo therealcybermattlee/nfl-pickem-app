@@ -255,8 +255,60 @@ prisma/
 - ✓ **Scalable architecture** ready for production
 - ✓ **Clean code structure** maintainable and extensible
 
+## CRITICAL DEVELOPMENT LEARNINGS - READ FIRST! ⚠️
+
+### Essential Development Principles (Based on Real Experience)
+
+**NEVER declare anything "fixed" until the USER can verify it works in the actual UI**
+- Testing individual API endpoints ≠ Testing complete user experience
+- Always verify the full user journey: login → dashboard → games display → picks functionality
+- Use Playwright for end-to-end testing, not curl for API-only testing
+- When user reports "it doesn't work" - believe them, don't dismiss their feedback
+
+**Always test the DEPLOYED APPLICATION that users actually access**
+- Local development ≠ Production deployment
+- Different deployment URLs may serve different versions
+- Check what's actually deployed vs what's in source code
+- Verify the correct production URL is being updated
+
+**Be brutally honest about uncertainty**
+- Say "I'm not sure, let me check" instead of claiming false confidence
+- Admit when something failed instead of making excuses
+- Don't make promises until you have concrete evidence
+- If you can't verify something works, say so explicitly
+
+**Focus on the complete application, not isolated components**
+- Ensure all features are present: dashboard, games list, picks, stats, authentication
+- Verify the rich UI components are deployed, not just basic pages
+- Check that the app matches the described functionality in this document
+- Don't deploy stripped/incomplete versions
+
+**Listen to user feedback and act on it immediately**
+- If user says "this is wrong" or "this doesn't work" - investigate thoroughly
+- Don't continue with other tasks until core issues are resolved
+- User experience is the only measure that matters
+- Take responsibility for mistakes instead of making excuses
+
+### Deployment-Specific Learnings
+
+**Cloudflare Pages Deployment Issues Encountered:**
+- Multiple deployment URLs can exist with different content
+- Main production domain: `https://nfl-pickem-app.pages.dev`
+- Custom domain: `https://pickem.leefamilysso.com`
+- Always verify which URL is the canonical production version
+- Use `wrangler pages deploy` for proper deployments
+- Check that functions are deployed to correct locations
+
+**Build Process Must Capture Full Application:**
+- Ensure Next.js build includes all pages and components
+- Verify API routes are properly deployed
+- Check that static assets and styling are included
+- Don't accept basic/stripped versions as successful deployments
+
 ---
 
 **Next Steps:** Ready to implement time-lock pick system using the 6-sprint plan. Foundation is solid and all core systems are operational.
 
 **For New Developers:** This codebase is production-ready for basic pick'em functionality. The time-lock feature represents the next major milestone.
+
+**REMEMBER:** Always follow the critical learnings above. User experience and honesty are more important than appearing competent.
