@@ -1,3 +1,18 @@
 {
-  "framework": "nextjs"
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "env": {
+    "DATABASE_URL": "@database_url",
+    "NEXTAUTH_SECRET": "@nextauth_secret",
+    "NEXTAUTH_URL": "@nextauth_url",
+    "MICROSOFT_CLIENT_ID": "@microsoft_client_id",
+    "MICROSOFT_CLIENT_SECRET": "@microsoft_client_secret",
+    "MICROSOFT_TENANT_ID": "@microsoft_tenant_id",
+    "THE_ODDS_API_KEY": "@the_odds_api_key",
+    "THE_ODDS_API_BASE_URL": "https://api.the-odds-api.com/v4",
+    "CURRENT_NFL_SEASON": "2025",
+    "CURRENT_NFL_WEEK": "1"
+  }
 }
