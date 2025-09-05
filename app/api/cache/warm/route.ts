@@ -1,5 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server'
+
 import { CachedOddsService } from '@/lib/services/odds/CachedOddsService'
 
 export async function POST(request: NextRequest) {

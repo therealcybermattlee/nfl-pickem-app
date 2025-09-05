@@ -1,5 +1,6 @@
 
 import { NextResponse } from 'next/server'
+
 import { checkAndAdvanceWeek, getNextWeekPreview } from '@/lib/week-scheduler'
 import { getCurrentNFLWeek, getCurrentNFLSeason } from '@/lib/nfl-api'
 

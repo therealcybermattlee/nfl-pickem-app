@@ -1,0 +1,120 @@
+
+import { NextRequest, NextResponse } from 'next/server'
+
+export const runtime = 'edge'
+import { CachedOddsService } from '@/lib/services/odds/CachedOddsService'
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { weeks, preload = false } = body
+    
+    if (!weeks || !Array.isArray(weeks)) {
+      return NextResponse.json({
+        success: false,
+        error: 'weeks array is required',
+        example: {
+          weeks: [
+            { week: 1, season: 2025 },
+            { week: 2, season: 2025 }
+          ]
+        }
+      }, { status: 400 })
+    }
+    
+    const oddsService = new CachedOddsService()
+    
+    console.log(`[CacheWarmAPI] Starting cache warming for ${weeks.length} weeks`)
+    
+    if (preload) {
+      // Sequential preload for better control
+      for (const { week, season } of weeks) {
+        try {
+          await oddsService.preloadWeekOdds(week, season)
+        } catch (error) {
+          console.error(`[CacheWarmAPI] Error preloading week ${week}:`, error)
+        }
+      }
+    } else {
+      // Batch warm with intelligent rate limiting
+      await oddsService.warmCache(weeks)
+    }
+    
+    const cacheStats = oddsService.getCacheStats()
+    const throttlerStats = oddsService.getThrottlerStats()
+    
+    console.log(`[CacheWarmAPI] Cache warming completed`)
+    
+    return NextResponse.json({
+      success: true,
+      message: `Cache warmed for ${weeks.length} weeks`,
+      weeks,
+      cacheStats,
+      throttlerStats
+    })
+    
+  } catch (error) {
+    console.error('Cache warming API error:', error)
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to warm cache',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    // Get current NFL season info for cache warming suggestions
+    const currentDate = new Date()
+    const currentYear = currentDate.getFullYear()
+    const month = currentDate.getMonth() + 1 // 0-indexed to 1-indexed
+    
+    // NFL season typically runs September-February
+    let season = currentYear
+    if (month <= 2) {
+      season = currentYear - 1 // February games are from previous season
+    }
+    
+    // Suggest current and next week
+    const currentWeek = Math.max(1, Math.min(18, Math.ceil((currentDate.getTime() - new Date(season, 8, 1).getTime()) / (7 * 24 * 60 * 60 * 1000))))
+    
+    const suggestedWeeks = [
+      { week: currentWeek, season },
+      { week: Math.min(18, currentWeek + 1), season }
+    ]
+    
+    const oddsService = new CachedOddsService()
+    const cacheStats = oddsService.getCacheStats()
+    const cacheHealth = await oddsService.getCacheHealthCheck()
+    
+    return NextResponse.json({
+      success: true,
+      message: 'Cache warming endpoint ready',
+      suggestedWeeks,
+      currentSeason: season,
+      currentWeek,
+      cacheStats,
+      cacheHealth,
+      usage: {
+        endpoint: 'POST /api/cache/warm',
+        parameters: {
+          weeks: 'Array of {week: number, season: number} objects',
+          preload: 'boolean - if true, preloads sequentially with longer TTL'
+        },
+        example: {
+          weeks: suggestedWeeks,
+          preload: false
+        }
+      }
+    })
+    
+  } catch (error) {
+    console.error('Cache warming info API error:', error)
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to get cache warming info',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
+  }
+}

@@ -1,5 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server'
+
 import { calculateWeeklyScores, calculateSeasonScores } from '@/lib/scoring'
 import { getCurrentNFLWeek, getCurrentNFLSeason } from '@/lib/nfl-api'
 

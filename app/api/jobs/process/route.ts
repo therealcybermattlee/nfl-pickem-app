@@ -1,5 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server'
+
 import { JobQueue } from '@/lib/jobs/JobQueue'
 
 export async function GET() {
