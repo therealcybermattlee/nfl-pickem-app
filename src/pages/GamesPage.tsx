@@ -185,11 +185,10 @@ export function GamesPage() {
 
                 <div className="text-right space-y-2">
                   <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    game.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
-                    game.status === 'in_progress' ? 'bg-green-100 text-green-800' :
-                    'bg-gray-100 text-gray-800'
+                    game.isCompleted ? 'bg-green-100 text-green-800' :
+                    'bg-blue-100 text-blue-800'
                   }`}>
-                    {(game.status || 'SCHEDULED').replace('_', ' ').toUpperCase()}
+                    {game.isCompleted ? 'FINAL' : 'SCHEDULED'}
                   </div>
                   
                   {game.homeSpread && (
@@ -218,22 +217,22 @@ export function GamesPage() {
             <div className="text-sm text-muted-foreground">Total Games</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">
-              {games.filter(g => g.status === 'scheduled').length}
+            <div className="text-2xl font-bold text-blue-600">
+              {games.filter(g => !g.isCompleted).length}
             </div>
             <div className="text-sm text-muted-foreground">Scheduled</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">
-              {games.filter(g => g.status === 'in_progress').length}
-            </div>
-            <div className="text-sm text-muted-foreground">In Progress</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-gray-600">
-              {games.filter(g => g.status === 'final').length}
+            <div className="text-2xl font-bold text-green-600">
+              {games.filter(g => g.isCompleted).length}
             </div>
             <div className="text-sm text-muted-foreground">Final</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-orange-600">
+              {games.filter(g => g.isCompleted && (g.homeScore || 0) + (g.awayScore || 0) > 0).length}
+            </div>
+            <div className="text-sm text-muted-foreground">With Scores</div>
           </div>
         </div>
       </div>

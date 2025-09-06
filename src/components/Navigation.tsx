@@ -45,6 +45,16 @@ export function Navigation() {
             >
               Games
             </Link>
+            <Link
+              to="/leaderboard"
+              className={`${
+                isActive('/leaderboard') 
+                  ? 'text-primary border-b-2 border-primary' 
+                  : 'text-muted-foreground hover:text-primary'
+              } px-3 py-2 transition-colors`}
+            >
+              Leaderboard
+            </Link>
           </div>
         </div>
       </div>

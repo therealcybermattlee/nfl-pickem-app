@@ -48,6 +48,32 @@ export interface Pick {
   created_at: string;
 }
 
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  displayName?: string;
+}
+
+export interface LeaderboardEntry {
+  user: User;
+  position: number;
+  points: number;
+  totalPicks: number;
+  totalGames: number;
+  winPercentage: number;
+  streak?: number;
+  lastWeekPoints?: number;
+}
+
+export interface Leaderboard {
+  week: number;
+  season: number;
+  entries: LeaderboardEntry[];
+  totalGames: number;
+  completedGames: number;
+}
+
 export interface ApiResponse<T> {
   data?: T;
   error?: string;

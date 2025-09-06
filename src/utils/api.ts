@@ -1,4 +1,4 @@
-import type { Team, Game, ApiResponse } from '../types/api';
+import type { Team, Game, Leaderboard, ApiResponse } from '../types/api';
 
 const API_BASE_URL = 'https://nfl-pickem-app-production.cybermattlee-llc.workers.dev';
 
@@ -37,5 +37,9 @@ export class ApiClient {
 
   static async getSession(): Promise<ApiResponse<any>> {
     return this.get<any>('/api/auth/session');
+  }
+
+  static async getLeaderboard(week: number = 1, season: number = 2025): Promise<ApiResponse<Leaderboard>> {
+    return this.get<Leaderboard>(`/api/leaderboard?week=${week}&season=${season}`);
   }
 }

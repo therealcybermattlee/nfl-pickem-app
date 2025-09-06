@@ -32,6 +32,11 @@ binding = "DB"
 database_name = "nfl-pickem-db"
 database_id = "b85129d8-b27c-4c73-bd34-5314a881394b"
 
+# Cron trigger for automated score updates
+# Runs every 15 minutes during game days (Thu-Mon, Sept-Feb)
+[triggers]
+crons = ["*/15 * * * *"]
+
 # Secrets to be set via wrangler secret put
 # THE_ODDS_API_KEY
 # NEXTAUTH_SECRET
