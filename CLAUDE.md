@@ -1,11 +1,39 @@
 # NFL Pick'em App - Claude Development Guide
 
-## Project Status: Foundation Complete ✓
+## ⚠️ CRITICAL DEVELOPMENT GUIDELINES - READ FIRST! ⚠️
 
-**Current State:** Fully functional NFL Pick'em application with authentication, database, and UI foundation.
+### 🤖 Primary Assistant Configuration
+**ALWAYS USE CLAUDE SONNET 4 as the primary model** - This provides the best balance of capability, speed, and cost for development tasks.
 
-**Last Updated:** January 2025
-**Development Phase:** Ready for time-lock pick system implementation
+### 🚀 BE PROACTIVE WITH SPECIALIZED AGENTS  
+**ALWAYS try to use specialized agents instead of doing work yourself** when applicable:
+
+- **frontend-developer**: Build React components, implement responsive layouts, and handle client-side state management. Optimizes frontend performance and ensures accessibility. Use PROACTIVELY when creating UI components or fixing frontend issues.
+- **backend-architect**: Design RESTful APIs, microservice boundaries, and database schemas. Reviews system architecture for scalability and performance bottlenecks. Use PROACTIVELY when creating new backend services or APIs.
+- **ui-ux-designer**: Create interface designs, wireframes, and design systems. Masters user research, prototyping, and accessibility standards. Use PROACTIVELY for design systems, user flows, or interface optimization.
+- **typescript-pro**: Master TypeScript with advanced types, generics, and strict type safety. Handles complex type systems, decorators, and enterprise-grade patterns. Use PROACTIVELY for TypeScript architecture, type inference optimization, or advanced typing patterns.
+- **deployment-engineer**: Configure CI/CD pipelines, Docker containers, and cloud deployments. Handles GitHub Actions, Kubernetes, and infrastructure automation. Use PROACTIVELY when setting up deployments, containers, or CI/CD workflows.
+- **code-reviewer**: Expert code review specialist. Proactively reviews code for quality, security, and maintainability. Use immediately after writing or modifying code.
+- **architect-review**: Reviews code changes for architectural consistency and patterns. Use PROACTIVELY after any structural changes, new services, or API modifications. Ensures SOLID principles, proper layering, and maintainability.
+- **api-documenter**: Create OpenAPI/Swagger specs, generate SDKs, and write developer documentation. Handles versioning, examples, and interactive docs. Use PROACTIVELY for API documentation or client library generation.
+- **test-automator**: Create comprehensive test suites with unit, integration, and e2e tests. Sets up CI pipelines, mocking strategies, and test data. Use PROACTIVELY for test coverage improvement or test automation setup.
+- **general-purpose**: General-purpose agent for researching complex questions, searching for code, and executing multi-step tasks. When you are searching for a keyword or file and are not confident that you will find the right match in the first few tries use this agent to perform the search for you.
+
+**Why?** Specialized agents have focused expertise and can often solve problems more efficiently than general development approaches.
+
+### 📋 Task Management
+- **ALWAYS use TodoWrite** for any multi-step or complex tasks
+- Track progress transparently for the user
+- Break down large tasks into manageable steps
+
+---
+
+## Project Status: Cloudflare-Native Implementation ✓
+
+**Current State:** Core rewrite complete, D1 binding configuration needed
+
+**Last Updated:** September 2025  
+**Development Phase:** Cloudflare Pages deployment with edge runtime
 
 ## What We've Built (Core Achievements)
 
@@ -259,6 +287,13 @@ prisma/
 
 ### Essential Development Principles (Based on Real Experience)
 
+**FAVOR DESTRUCTIVE, LONG-TERM FIXES OVER QUICK FIXES**
+- Quick fixes and workarounds should be LAST RESORT only
+- When facing architectural problems, choose the destructive but proper solution
+- Rewrite entire systems if they're fundamentally incompatible
+- Remove and replace broken dependencies completely rather than patching
+- Example: Replace NextAuth + Prisma entirely for Cloudflare compatibility rather than trying to make them work
+
 **NEVER declare anything "fixed" until the USER can verify it works in the actual UI**
 - Testing individual API endpoints ≠ Testing complete user experience
 - Always verify the full user journey: login → dashboard → games display → picks functionality
@@ -312,3 +347,47 @@ prisma/
 **For New Developers:** This codebase is production-ready for basic pick'em functionality. The time-lock feature represents the next major milestone.
 
 **REMEMBER:** Always follow the critical learnings above. User experience and honesty are more important than appearing competent.
+
+## 🔧 CURRENT TECHNICAL BLOCKERS (September 2025)
+
+### D1 Database Binding Issue - PRIORITY 1
+
+**Problem:** All API endpoints returning 500 errors due to D1 database binding not accessible in Cloudflare Pages edge functions.
+
+**Status:** Architecture complete, configuration issue only
+
+**What Works:**
+- ✅ D1 database exists with ID `b85129d8-b27c-4c73-bd34-5314a881394b`
+- ✅ Database contains all 32 NFL teams and test users
+- ✅ API routes converted to edge runtime
+- ✅ D1DatabaseManager with all necessary methods
+- ✅ Build and deployment process working
+- ✅ Environment variables configured (NEXTAUTH_SECRET)
+
+**What's Broken:**
+- ❌ D1 binding access: `(globalThis as any).DB` and `process.env.DB` both undefined
+- ❌ All API endpoints return 500: `/api/teams`, `/api/games`, `/api/picks`
+- ❌ Frontend stuck in "Loading..." due to failed session API calls
+
+**Technical Root Cause:**
+In Cloudflare Pages with Next.js, D1 bindings are accessed differently than in standard Workers. Current implementation tries `request.cf?.env?.DB` and `globalThis.DB`, but neither work in the Pages environment.
+
+**Next Steps for Resolution:**
+1. ✅ Implemented `getRequestContext()` from `@cloudflare/next-on-pages` approach
+2. ✅ Updated all API routes with proper binding access pattern
+3. ❌ Production deployment still failing - `getRequestContext()` not working in Cloudflare Pages environment
+4. **Alternative needed:** Switch to direct D1 REST API calls or different deployment approach
+
+**Current Status:** All API endpoints return 500 errors in production, even simple test endpoints. The `getRequestContext()` approach works in documentation but fails in the actual Cloudflare Pages deployment environment.
+
+**Impact:** Core NFL functionality is architecturally complete but completely blocked until D1 access is resolved.
+
+**Deployment URLs:**
+- Latest: `https://c16e8872.nfl-pickem-app.pages.dev`
+- Custom domain: `https://pickem.leefamilysso.com` (configured in wrangler.toml)
+
+### Authentication System - DEPRIORITIZED
+
+**Status:** Functional but bypassed for testing core NFL features
+
+**Decision:** Simplified to Cloudflare-native authentication only. Removed Microsoft OAuth complexity. Uses JWT + bcrypt for clean credential-based auth focused on core functionality.
