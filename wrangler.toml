@@ -37,6 +37,26 @@ database_id = "b85129d8-b27c-4c73-bd34-5314a881394b"
 # binding = "CACHE"
 # id = ""
 
+# Cron triggers for game state automation
+# During NFL season (Sept-Feb): Smart scheduling based on game days
+[triggers]
+crons = [
+  # High-frequency during game days (Thu-Mon): Every 15 minutes
+  "*/15 * * * 4",    # Thursday: Every 15 minutes (TNF games)
+  "*/15 * * * 5",    # Friday: Every 15 minutes (rare games)
+  "*/15 * * * 6",    # Saturday: Every 15 minutes (late season)
+  "*/15 * * * 0",    # Sunday: Every 15 minutes (main game day)
+  "*/15 * * * 1",    # Monday: Every 15 minutes (MNF games)
+  
+  # Lower frequency during off-game days (Tue-Wed): Every 2 hours  
+  "0 */2 * * 2",     # Tuesday: Every 2 hours (maintenance)
+  "0 */2 * * 3",     # Wednesday: Every 2 hours (preparation)
+  
+  # Special schedules for critical times
+  "0 9,12,15,18,21 * 9-12,1-2 *",  # During NFL season months: 4 times daily
+  "0 */6 * 3-8 *"    # Off-season: Every 6 hours for maintenance
+]
+
 # Secrets to be set via wrangler secret put
 # THE_ODDS_API_KEY
 # NEXTAUTH_SECRET

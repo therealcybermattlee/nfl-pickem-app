@@ -46,3 +46,8 @@ Thumbs.db
 
 # Database
 prisma/migrations/dev/
+# Claude Agent Farm
+.heartbeats/
+.claude_agent_farm_state.json
+.claude_agent_farm_backups/
+agent_farm_report_*.html

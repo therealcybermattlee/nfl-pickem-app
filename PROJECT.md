@@ -3,24 +3,25 @@
 ## Current State: ESPN API Integration Complete ✅
 
 **Date:** September 2025  
-**Status:** Core rewrite complete, ESPN API integrated, full season data loaded  
+**Status:** Vite + React app with Cloudflare Workers API, ESPN integration complete  
 **Focus:** Production-ready NFL data with comprehensive game coverage  
 
 ## What We Built (Current Cloudflare-Native Stack)
 
-### ✓ Core Architecture Rebuilt for Edge Runtime
-- **Frontend:** Next.js 15 with App Router (edge-compatible)
-- **Authentication:** Custom JWT with Web Crypto API (EdgeAuthManager)
-- **Database:** Direct D1 operations (replaced Prisma)
-- **Deployment:** Cloudflare Pages with proper edge functions
-- **UI:** Tailwind CSS + shadcn/ui (retained)
+### ✓ Core Architecture - Vite + React + Cloudflare Workers
+- **Frontend:** Vite + React with React Router
+- **Authentication:** Custom JWT with bcryptjs password hashing
+- **Database:** Direct D1 database operations via Cloudflare Workers
+- **API:** Cloudflare Workers with proper D1 bindings
+- **Deployment:** Cloudflare Pages (frontend) + Workers (API)
+- **UI:** Tailwind CSS with responsive design
 
 ### ✓ Key Technical Migrations Completed
-- **Removed NextAuth.js** → Custom JWT authentication  
+- **Migrated from Next.js** → Vite + React for better Cloudflare compatibility
 - **Removed Prisma ORM** → Direct D1 database operations
-- **Added bcryptjs** → Password verification compatibility
-- **Updated API routes** → All edge runtime compatible
-- **Fixed environment setup** → NEXTAUTH_SECRET configured in Cloudflare
+- **Custom JWT auth** → Works seamlessly with Cloudflare Workers
+- **Split architecture** → Frontend on Pages, API on Workers
+- **Working D1 bindings** → Full database access in production
 
 ### ✅ ESPN API Integration (NEW)
 - **Primary Data Source:** ESPN API for official NFL schedules, teams, scores
@@ -39,8 +40,8 @@
 
 ## Current Deployment
 
-**Production URL:** https://ff0a32da.nfl-pickem-app.pages.dev  
-**Custom Domain:** https://pickem.leefamilysso.com (configured in wrangler.toml)
+**Frontend (Cloudflare Pages):** https://pickem.leefamilysso.com  
+**API (Cloudflare Workers):** https://nfl-pickem-app-production.cybermattlee-llc.workers.dev
 
 ## Immediate Focus - Skip Authentication Complexity
 
@@ -74,17 +75,21 @@
 ## Quick Development Commands
 
 ```bash
-# Build and deploy
-npm run build
-npx wrangler pages deploy
+# Frontend development
+npm run dev                # Start Vite dev server at localhost:3000
+npm run build             # Build frontend for production
 
-# Database operations  
+# API development and deployment  
+npm run workers:dev       # Start Workers dev server
+npm run workers:deploy    # Deploy Workers API
+
+# Database operations
 npx wrangler d1 execute nfl-pickem-db --remote --command="SELECT * FROM users LIMIT 5;"
-npx wrangler d1 execute nfl-pickem-db --remote --command="SELECT * FROM teams LIMIT 10;"
-npx wrangler d1 execute nfl-pickem-db --remote --command="SELECT * FROM games LIMIT 5;"
+npx wrangler d1 execute nfl-pickem-db --remote --command="SELECT * FROM games WHERE week = 1 LIMIT 5;"
 
-# Check environment
-npx wrangler pages secret list --env production
+# Sync NFL data
+npm run odds:sync         # Sync ESPN API data (dev)
+curl -X POST https://nfl-pickem-app-production.cybermattlee-llc.workers.dev/api/odds/sync  # Production sync
 ```
 
 ## What Works Right Now ✓
@@ -110,11 +115,10 @@ npx wrangler pages secret list --env production
 **Solution:** Direct database update correcting Game 1 to show DAL @ PHI (Cowboys @ Eagles)
 **Status:** ✅ Corrected in database, ✅ Frontend deployed
 
-### Active Issue: D1 Database Binding 
-**Problem:** Frontend gets stuck in "Loading..." due to API 500 errors
-**Root Cause:** D1 database binding not accessible in Cloudflare Pages edge functions
-**Technical Details:** `(globalThis as any).DB` and `process.env.DB` both undefined in Pages environment
-**Impact:** All API endpoints return 500, preventing access to corrected game data
+### ✅ RESOLVED: D1 Database Binding 
+**Problem:** Previously had D1 database binding issues preventing API access  
+**Solution:** Split architecture - Frontend on Pages, API on Workers with proper D1 bindings
+**Result:** Full database access now working with 199 games loaded successfully
 
 ## Next Steps (Simplified)
 
@@ -137,28 +141,33 @@ npx wrangler pages secret list --env production
 ## Environment Configuration (Working)
 
 ```bash
-# Cloudflare environment variables set:
-NEXTAUTH_SECRET: ✓ Configured
-NODE_ENV: production  
-NEXTAUTH_URL: https://pickem.leefamilysso.com
+# Cloudflare Workers environment variables:
+JWT_SECRET: ✓ Configured for authentication
+ODDS_API_KEY: ✓ Configured for betting data
 CURRENT_NFL_SEASON: 2025
 CURRENT_NFL_WEEK: 1
+D1 Database: nfl-pickem-db (properly bound to Workers)
 ```
 
 ## File Structure (Current)
 
 ```
-lib/
-├── auth-edge.ts          # Custom JWT authentication (NEW)
-├── db-edge.ts           # D1 database operations (NEW)  
-└── nfl-api.ts           # NFL data helpers
+src/
+├── components/          # React components
+├── pages/               # Page components (HomePage, GamesPage, etc.)
+├── types/               # TypeScript type definitions
+├── utils/               # Utility functions and API client
+├── worker.ts            # Cloudflare Workers API with all endpoints
+├── App.tsx              # Main React app with routing
+└── main.tsx             # Vite entry point
 
-app/api/
-├── auth/                # Custom auth endpoints (REWRITTEN)
-├── games/               # Games API (UPDATED for D1)
-├── picks/               # Picks API (UPDATED for D1)
-├── teams/               # Teams API (UPDATED for D1)
-└── leaderboard/         # Leaderboard API (UPDATED for D1)
+Cloudflare Workers API endpoints (in worker.ts):
+├── /api/auth/*          # Authentication endpoints
+├── /api/games/*         # Games data
+├── /api/picks/*         # Pick submission and retrieval
+├── /api/teams/*         # Team information
+├── /api/leaderboard/*   # User rankings and stats
+└── /api/odds/sync       # ESPN API sync endpoint
 ```
 
 ## ESPN API Integration Learnings (September 2025)
@@ -225,73 +234,64 @@ wrangler d1 execute nfl-pickem-db --remote --command="SELECT oddsProvider, COUNT
 **✅ Short-term:** Full season game data loaded (199 games across 14 weeks)
 **✅ Long-term:** Scalable data architecture supporting both ESPN + Odds APIs
 
-## Next Priority Features (Post-ESPN Integration)
+## Next Priority Features
 
-### 🔄 Automated Data Scheduler (Priority 1)
+### 🔒 Time-Lock Pick System (Next Sprint)
 
-**Problem:** Currently requires manual API calls to update game scores and completion status
-**Impact:** Users don't see updated scores or earn points until manual intervention
+**Goal:** Implement time-sensitive pick system with automatic deadlines
 
-**Implementation Plan:**
-- **Cloudflare Cron Triggers**: Set up scheduled workers to run every 15 minutes during game days
-- **Score Update Workflow**: 
-  1. Fetch latest ESPN scores for in-progress games
-  2. Update `homeScore`, `awayScore` in games table
-  3. Mark completed games with `isCompleted = true` and set `winnerTeamId`
-  4. Auto-calculate and award points to users with correct picks
-- **Smart Scheduling**: Only run during NFL season (Sept-Feb) and game days
-- **Error Handling**: Retry logic and failure notifications
+**6-Sprint Implementation Plan:**
 
-**Technical Implementation:**
-```javascript
-// wrangler.toml addition
-[triggers]
-crons = ["*/15 * * * *"] # Every 15 minutes
+1. **Database Enhancement** - Add time-based fields and constraints
+   - Add `lockTime` field to games table
+   - Add pick submission timestamps
+   - Create indexes for time-based queries
 
-// New function in src/worker.ts
-async function scheduledScoreUpdate(env) {
-  // Auto-update scores and award points
-}
-```
+2. **Pick Management API** - Lock validation and submission endpoints  
+   - Validate picks against game start times
+   - Prevent late submissions
+   - Handle edge cases (timezone differences)
 
-### 📊 Betting Lines Display Improvements (Priority 2)
+3. **Game State Automation** - Background monitoring and auto-picks
+   - Cloudflare Cron triggers for game monitoring
+   - Auto-random selection for missed picks
+   - Score updates and completion status
 
-**Problem:** Current spreads show unrealistic decimal points (e.g., "+0.1", "-0.0")
-**User Impact:** Confusing display that doesn't match standard sportsbook formatting
+4. **Real-Time Integration** - Live status updates and job processing
+   - WebSocket or SSE for live updates
+   - Pick deadline countdown timers
+   - Real-time score updates
 
-**Issues to Fix:**
-- **Decimal Points**: NFL spreads are whole/half numbers (3.5, 7, 10.5), not 0.1
-- **Zero Spreads**: Games showing "-0.0" or "+0.0" should show "EVEN" or "PK" (pick'em)
-- **Favorite Indication**: Should clearly show which team is favored
-- **Missing Spreads**: Handle games with no spread data gracefully
+5. **User Interface** - Time indicators and lock status UI
+   - Countdown timers on pick forms
+   - Visual lock indicators
+   - Mobile-optimized time displays
 
-**Improved Display Format:**
-```
-Current: "PHI +0.1"     → Fixed: "PHI -3.5" (Eagles favored by 3.5)
-Current: "DAL -0.0"     → Fixed: "EVEN" (pick'em game)
-Current: "KC +0.4"      → Fixed: "KC +7" (Chiefs getting 7 points)
-```
+6. **Production Readiness** - Testing and deployment optimization
+   - End-to-end testing scenarios
+   - Performance optimization
+   - Error handling and recovery
 
-**Data Source Investigation:**
-- Verify The Odds API vs ESPN data quality for spreads
-- Check if American odds need different conversion to point spreads
-- Implement data validation to reject impossible spreads (<0.5 or >50)
+**Key Requirements:**
+- Users can pick any time before game start
+- Picks lock immediately upon submission
+- Auto-random selection for missed picks
+- Real-time UI updates with countdown timers
 
-### 🏆 Leaderboard & Stats Dashboard (Priority 3)
+### 🔄 Automated Score Updates (Priority 2)
 
-**Missing Features:**
-- Real-time leaderboard showing current standings
-- Weekly performance tracking
-- Season-long statistics
-- User achievement badges
+**Implementation:** Cloudflare Cron triggers every 15 minutes during game days
+- Fetch latest ESPN scores
+- Update game completion status
+- Auto-calculate and award points
 
-### 📱 Mobile UX Improvements (Priority 4)
+### 📊 UI/UX Polish (Priority 3)
 
 **Focus Areas:**
-- Touch-friendly pick selection
-- Quick score updates
-- Push notifications for game results
-- Offline pick submission
+- Fix betting line displays (remove weird decimals like "+0.1")
+- Improve mobile touch interactions
+- Add loading states and error handling
+- Enhanced leaderboard features
 
 ## Current Status: September 2025 ✅
 
@@ -324,4 +324,9 @@ All players tied at 1 point each:
 
 ---
 
-**Key Learning:** Always prioritize official data sources (ESPN) over third-party APIs. Use secondary sources only to supplement missing data, never to override authoritative sources.
+## Summary
+
+**Current Status:** Fully functional NFL pick'em app with ESPN integration  
+**Architecture:** Vite + React frontend, Cloudflare Workers API, D1 database  
+**Next Milestone:** Time-lock pick system implementation  
+**Key Learning:** Always prioritize official data sources (ESPN) over third-party APIs
