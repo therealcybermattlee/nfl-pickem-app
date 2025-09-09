@@ -1,0 +1,253 @@
+/* High contrast mode styles */
+.high-contrast {
+  /* Base colors */
+  --bg-primary: #000000;
+  --bg-secondary: #1a1a1a;
+  --text-primary: #ffffff;
+  --text-secondary: #cccccc;
+  --border-primary: #ffffff;
+  --accent-primary: #00ff00;
+  --accent-secondary: #ffff00;
+  --danger: #ff0000;
+  --warning: #ffaa00;
+  --success: #00ff00;
+}
+
+.high-contrast {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+.high-contrast .bg-white {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-primary) !important;
+}
+
+.high-contrast .bg-gray-50,
+.high-contrast .bg-gray-100 {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+}
+
+.high-contrast .text-gray-500,
+.high-contrast .text-gray-600,
+.high-contrast .text-gray-700,
+.high-contrast .text-gray-800,
+.high-contrast .text-gray-900 {
+  color: var(--text-primary) !important;
+}
+
+.high-contrast .text-blue-600,
+.high-contrast .text-blue-500 {
+  color: var(--accent-primary) !important;
+}
+
+.high-contrast .bg-blue-50,
+.high-contrast .bg-blue-100 {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--accent-primary) !important;
+}
+
+.high-contrast .bg-blue-500,
+.high-contrast .bg-blue-600 {
+  background-color: var(--accent-primary) !important;
+  color: var(--bg-primary) !important;
+}
+
+.high-contrast .text-green-600,
+.high-contrast .text-green-500 {
+  color: var(--success) !important;
+}
+
+.high-contrast .bg-green-50,
+.high-contrast .bg-green-100 {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--success) !important;
+}
+
+.high-contrast .text-red-600,
+.high-contrast .text-red-500 {
+  color: var(--danger) !important;
+}
+
+.high-contrast .bg-red-50,
+.high-contrast .bg-red-100 {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--danger) !important;
+}
+
+.high-contrast .text-orange-600,
+.high-contrast .text-orange-500 {
+  color: var(--warning) !important;
+}
+
+.high-contrast .bg-orange-50,
+.high-contrast .bg-orange-100 {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--warning) !important;
+}
+
+.high-contrast .border,
+.high-contrast .border-gray-200,
+.high-contrast .border-gray-300 {
+  border-color: var(--border-primary) !important;
+}
+
+.high-contrast button:focus,
+.high-contrast input:focus,
+.high-contrast select:focus {
+  outline: 3px solid var(--accent-secondary) !important;
+  outline-offset: 2px !important;
+}
+
+.high-contrast .shadow-sm,
+.high-contrast .shadow,
+.high-contrast .shadow-md,
+.high-contrast .shadow-lg {
+  box-shadow: 0 0 0 2px var(--border-primary) !important;
+}
+
+/* Reduce motion when preferred */
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse,
+  .animate-spin {
+    animation: none !important;
+  }
+  
+  .transition-all,
+  .transition-colors,
+  .transition-shadow,
+  .transition-transform {
+    transition: none !important;
+  }
+  
+  .duration-200,
+  .duration-300 {
+    transition-duration: 0ms !important;
+  }
+  
+  .hover\:scale-105:hover,
+  .active\:scale-95:active {
+    transform: none !important;
+  }
+}
+
+/* Focus indicators for keyboard navigation */
+.focus\:ring-2:focus {
+  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+}
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.focus\:not-sr-only:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Touch targets - ensure minimum 44px */
+.touch-manipulation {
+  touch-action: manipulation;
+}
+
+button,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+a {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* High contrast borders for better definition */
+.high-contrast .border-l-4 {
+  border-left-width: 6px !important;
+}
+
+.high-contrast .rounded-lg,
+.high-contrast .rounded,
+.high-contrast .rounded-full {
+  border: 2px solid var(--border-primary) !important;
+}
+
+/* Loading states with high contrast */
+.high-contrast .animate-pulse {
+  background-color: var(--bg-secondary) !important;
+  border: 2px solid var(--border-primary) !important;
+}
+
+/* Focus trap styling */
+[data-focus-trap] {
+  position: relative;
+}
+
+/* Error states */
+.high-contrast [role="alert"] {
+  border: 3px solid var(--danger) !important;
+  background-color: var(--bg-secondary) !important;
+  color: var(--danger) !important;
+  font-weight: bold !important;
+}
+
+/* Success states */
+.high-contrast .text-green-600 {
+  color: var(--success) !important;
+  font-weight: bold !important;
+}
+
+/* Mobile-specific accessibility improvements */
+@media (max-width: 768px) {
+  /* Larger touch targets on mobile */
+  button,
+  [role="button"],
+  input[type="button"],
+  input[type="submit"],
+  a {
+    min-height: 48px;
+    min-width: 48px;
+    padding: 12px;
+  }
+  
+  /* Bigger text for better readability */
+  .high-contrast {
+    font-size: 16px !important;
+  }
+  
+  .high-contrast .text-sm {
+    font-size: 16px !important;
+  }
+  
+  .high-contrast .text-xs {
+    font-size: 14px !important;
+  }
+  
+  /* More pronounced focus indicators on mobile */
+  .high-contrast button:focus,
+  .high-contrast input:focus,
+  .high-contrast select:focus {
+    outline: 4px solid var(--accent-secondary) !important;
+    outline-offset: 3px !important;
+  }
+}

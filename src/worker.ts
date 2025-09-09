@@ -1,6 +1,12 @@
 import { D1DatabaseManager } from '../lib/db-workers'
 import * as bcrypt from 'bcryptjs'
 import { SignJWT, jwtVerify } from 'jose'
+import { 
+  handleSSEStream, 
+  handleEventPolling, 
+  EventSystem, 
+  EventBroadcaster 
+} from './lib/event-system'
 
 interface Env {
   DB: D1Database
@@ -104,11 +110,17 @@ export default {
     // Initialize database manager
     const db = new D1DatabaseManager(env.DB)
     
-    // CORS headers
+    // CORS headers - restrict to known domains
     const corsHeaders = {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': 'https://pickem.leefamilysso.com',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Allow-Credentials': 'true',
+      // Security headers
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'X-XSS-Protection': '1; mode=block',
+      'Referrer-Policy': 'strict-origin-when-cross-origin'
     }
     
     // Handle CORS preflight
@@ -262,7 +274,25 @@ async function handleApiRequest(request: Request, pathname: string, db: D1Databa
     }
     
     if (method === 'POST') {
-      return await handlePickSubmission(request, db)
+      // Require authentication for pick submission
+      const authHeader = request.headers.get('authorization')
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return new Response(JSON.stringify({ error: 'Authorization required' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      }
+
+      const token = authHeader.substring(7)
+      const userId = await getUserIdFromRequest(request, env)
+      if (!userId) {
+        return new Response(JSON.stringify({ error: 'Invalid token' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      }
+
+      return await handlePickSubmission(request, db, userId)
     }
   }
 
@@ -313,7 +343,8 @@ async function handleApiRequest(request: Request, pathname: string, db: D1Databa
       
       // Find user
       const user = await db.getUserByEmail(body.email)
-      if (!user || !user.password) {
+      const userPassword = user?.password || user?.passwordHash
+      if (!user || !userPassword) {
         return new Response(JSON.stringify({ error: 'Invalid credentials' }), {
           status: 401,
           headers: { 'Content-Type': 'application/json' }
@@ -321,7 +352,7 @@ async function handleApiRequest(request: Request, pathname: string, db: D1Databa
       }
       
       // Verify password
-      const isValid = await bcrypt.compare(body.password, user.password)
+      const isValid = await bcrypt.compare(body.password, userPassword)
       if (!isValid) {
         return new Response(JSON.stringify({ error: 'Invalid credentials' }), {
           status: 401,
@@ -374,9 +405,18 @@ async function handleApiRequest(request: Request, pathname: string, db: D1Databa
   }
 
 
-  // Odds API sync
+  // Odds API sync - secured system endpoint
   if (pathname === '/api/odds/sync') {
     if (method === 'POST') {
+      // Require API key for system operations
+      const apiKey = request.headers.get('x-api-key') || url.searchParams.get('api-key')
+      if (!apiKey || apiKey !== env.THE_ODDS_API_KEY) {
+        return new Response(JSON.stringify({ error: 'Unauthorized - Invalid API key' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      }
+      
       try {
         const result = await syncOddsApi(db, env)
         return new Response(JSON.stringify(result), {
@@ -581,6 +621,301 @@ async function handleApiRequest(request: Request, pathname: string, db: D1Databa
     }
   }
   
+  // =============================================================================
+  // REAL-TIME EVENT SYSTEM API ENDPOINTS
+  // =============================================================================
+  
+  // Server-Sent Events (SSE) endpoint for real-time updates
+  if (pathname === '/api/events/stream') {
+    if (method === 'GET') {
+      // Extract user ID from authorization header if present
+      const authHeader = request.headers.get('authorization')
+      let userId: number | undefined
+      
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        try {
+          const token = authHeader.substring(7)
+          if (!env.NEXTAUTH_SECRET) {
+    return new Response(JSON.stringify({ error: 'Authentication service unavailable' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    })
+  }
+  const secret = new TextEncoder().encode(env.NEXTAUTH_SECRET)
+          const { payload } = await jwtVerify(token, secret)
+          userId = payload.userId as number
+        } catch (error) {
+          // Invalid token, continue as anonymous user
+          console.warn('Invalid JWT token for SSE connection:', error)
+        }
+      }
+      
+      return await handleSSEStream(request, db, userId)
+    }
+  }
+  
+  // Polling endpoint for real-time events (fallback for SSE)
+  if (pathname === '/api/events/poll') {
+    if (method === 'GET') {
+      // Extract user ID from authorization header if present
+      const authHeader = request.headers.get('authorization')
+      let userId: number | undefined
+      
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        try {
+          const token = authHeader.substring(7)
+          if (!env.NEXTAUTH_SECRET) {
+    return new Response(JSON.stringify({ error: 'Authentication service unavailable' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    })
+  }
+  const secret = new TextEncoder().encode(env.NEXTAUTH_SECRET)
+          const { payload } = await jwtVerify(token, secret)
+          userId = payload.userId as number
+        } catch (error) {
+          // Invalid token, continue as anonymous user
+          console.warn('Invalid JWT token for polling:', error)
+        }
+      }
+      
+      return await handleEventPolling(request, db, userId)
+    }
+  }
+  
+  // Event creation endpoint (for testing and internal use)
+  if (pathname === '/api/events') {
+    if (method === 'POST') {
+      try {
+        const eventRequest = await request.json()
+        const eventSystem = new EventSystem(db)
+        const event = await eventSystem.createEvent(eventRequest)
+        
+        return new Response(JSON.stringify({ 
+          success: true, 
+          event 
+        }), {
+          headers: { 'Content-Type': 'application/json' }
+        })
+      } catch (error) {
+        return new Response(JSON.stringify({ 
+          error: 'Failed to create event', 
+          details: error instanceof Error ? error.message : 'Unknown error' 
+        }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      }
+    }
+  }
+  
+  // =============================================================================
+  // REAL-TIME DATA ENDPOINTS
+  // =============================================================================
+  
+  // Live scores endpoint
+  if (pathname === '/api/games/live-scores') {
+    if (method === 'GET') {
+      try {
+        const week = parseInt(url.searchParams.get('week') || env.CURRENT_NFL_WEEK || '1')
+        const season = parseInt(url.searchParams.get('season') || env.CURRENT_NFL_SEASON || '2025')
+        
+        const result = await db.query(`
+          SELECT g.id, g.homeTeamId, g.awayTeamId, g.homeScore, g.awayScore, 
+                 g.status, g.gameTime, g.isCompleted,
+                 ht.abbreviation as homeTeamAbbr, ht.name as homeTeamName,
+                 at.abbreviation as awayTeamAbbr, at.name as awayTeamName
+          FROM games g
+          JOIN teams ht ON g.homeTeamId = ht.id
+          JOIN teams at ON g.awayTeamId = at.id
+          WHERE g.week = ? AND g.season = ? 
+            AND (g.status = 'in_progress' OR g.status = 'final')
+          ORDER BY g.gameDate
+        `, [week, season])
+        
+        const liveGames = result.results.map((row: any) => ({
+          gameId: row.id,
+          homeTeam: {
+            id: row.homeTeamId,
+            name: row.homeTeamName,
+            abbreviation: row.homeTeamAbbr,
+            score: row.homeScore
+          },
+          awayTeam: {
+            id: row.awayTeamId,
+            name: row.awayTeamName,
+            abbreviation: row.awayTeamAbbr,
+            score: row.awayScore
+          },
+          status: row.status,
+          gameTime: row.gameTime,
+          isCompleted: row.isCompleted
+        }))
+        
+        return new Response(JSON.stringify({ 
+          liveGames,
+          week,
+          season,
+          lastUpdated: new Date().toISOString()
+        }), {
+          headers: { 'Content-Type': 'application/json' }
+        })
+      } catch (error) {
+        return new Response(JSON.stringify({ 
+          liveGames: [],
+          error: 'Failed to fetch live scores' 
+        }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      }
+    }
+  }
+  
+  // Live pick status endpoint
+  if (pathname === '/api/picks/live-status') {
+    if (method === 'GET') {
+      // Requires authentication
+      const authHeader = request.headers.get('authorization')
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return new Response(JSON.stringify({ error: 'Authorization required' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      }
+      
+      try {
+        const token = authHeader.substring(7)
+        if (!env.NEXTAUTH_SECRET) {
+    return new Response(JSON.stringify({ error: 'Authentication service unavailable' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    })
+  }
+  const secret = new TextEncoder().encode(env.NEXTAUTH_SECRET)
+        const { payload } = await jwtVerify(token, secret)
+        const userId = payload.userId as number
+        
+        const week = parseInt(url.searchParams.get('week') || env.CURRENT_NFL_WEEK || '1')
+        const season = parseInt(url.searchParams.get('season') || env.CURRENT_NFL_SEASON || '2025')
+        
+        const result = await db.query(`
+          SELECT p.gameId, p.teamId, p.isLocked, p.lockedAt, p.autoGenerated,
+                 g.lockTime, g.status as gameStatus,
+                 t.abbreviation as teamAbbr, t.name as teamName
+          FROM picks p
+          JOIN games g ON p.gameId = g.id
+          JOIN teams t ON p.teamId = t.id
+          WHERE p.userId = ? AND g.week = ? AND g.season = ?
+          ORDER BY g.gameDate
+        `, [userId, week, season])
+        
+        const userPicks = result.results.map((row: any) => ({
+          gameId: row.gameId,
+          teamPicked: {
+            id: row.teamId,
+            name: row.teamName,
+            abbreviation: row.teamAbbr
+          },
+          isLocked: row.isLocked,
+          lockedAt: row.lockedAt,
+          autoGenerated: row.autoGenerated,
+          lockTime: row.lockTime,
+          gameStatus: row.gameStatus
+        }))
+        
+        return new Response(JSON.stringify({ 
+          userPicks,
+          userId,
+          week,
+          season,
+          lastUpdated: new Date().toISOString()
+        }), {
+          headers: { 'Content-Type': 'application/json' }
+        })
+      } catch (error) {
+        return new Response(JSON.stringify({ error: 'Invalid authorization token' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      }
+    }
+  }
+  
+  // Live leaderboard endpoint
+  if (pathname === '/api/leaderboard/live') {
+    if (method === 'GET') {
+      try {
+        const week = parseInt(url.searchParams.get('week') || env.CURRENT_NFL_WEEK || '1')
+        const season = parseInt(url.searchParams.get('season') || env.CURRENT_NFL_SEASON || '2025')
+        
+        // Get current leaderboard with live updates
+        const result = await db.query(`
+          WITH user_scores AS (
+            SELECT 
+              u.id as userId,
+              u.name,
+              u.email,
+              COUNT(p.id) as totalPicks,
+              COUNT(CASE WHEN g.isCompleted = 1 AND p.teamId = g.winnerTeamId THEN 1 END) as correctPicks,
+              COUNT(CASE WHEN g.isCompleted = 1 THEN 1 END) as completedGamePicks
+            FROM users u
+            LEFT JOIN picks p ON u.id = p.userId
+            LEFT JOIN games g ON p.gameId = g.id AND g.week = ? AND g.season = ?
+            GROUP BY u.id, u.name, u.email
+          )
+          SELECT 
+            userId,
+            name,
+            email,
+            totalPicks,
+            correctPicks,
+            completedGamePicks,
+            CASE 
+              WHEN completedGamePicks > 0 
+              THEN ROUND((correctPicks * 100.0 / completedGamePicks), 1)
+              ELSE 0
+            END as winPercentage,
+            ROW_NUMBER() OVER (ORDER BY correctPicks DESC, winPercentage DESC) as position
+          FROM user_scores
+          WHERE totalPicks > 0
+          ORDER BY correctPicks DESC, winPercentage DESC
+        `, [week, season])
+        
+        const leaderboard = result.results.map((row: any) => ({
+          position: row.position,
+          user: {
+            id: row.userId,
+            name: row.name,
+            email: row.email
+          },
+          points: row.correctPicks,
+          totalPicks: row.totalPicks,
+          totalGames: row.completedGamePicks,
+          winPercentage: row.winPercentage
+        }))
+        
+        return new Response(JSON.stringify({ 
+          leaderboard,
+          week,
+          season,
+          lastUpdated: new Date().toISOString(),
+          isLive: true
+        }), {
+          headers: { 'Content-Type': 'application/json' }
+        })
+      } catch (error) {
+        return new Response(JSON.stringify({ 
+          leaderboard: [],
+          error: 'Failed to fetch live leaderboard' 
+        }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      }
+    }
+  }
+  
   return new Response('Not Found', { status: 404 })
 }
 
@@ -650,17 +985,26 @@ async function getTimeUntilLock(lockTime: string): Promise<number> {
 /**
  * Enhanced pick submission handler with time-lock validation
  */
-async function handlePickSubmission(request: Request, db: D1DatabaseManager): Promise<Response> {
+async function handlePickSubmission(request: Request, db: D1DatabaseManager, userId?: string): Promise<Response> {
   try {
     const body = await request.json() as PickRequest
     
     // Validate required fields
-    if (!body.userId || !body.gameId || !body.teamId) {
+    if (!body.gameId || !body.teamId) {
       return new Response(JSON.stringify({ 
         error: 'Missing required fields',
-        required: ['userId', 'gameId', 'teamId']
+        required: ['gameId', 'teamId']
       }), {
         status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Use authenticated userId (from token) instead of body userId for security
+    const authenticatedUserId = userId || body.userId
+    if (!authenticatedUserId) {
+      return new Response(JSON.stringify({ error: 'User authentication required' }), {
+        status: 401,
         headers: { 'Content-Type': 'application/json' }
       })
     }
@@ -678,7 +1022,7 @@ async function handlePickSubmission(request: Request, db: D1DatabaseManager): Pr
     }
     
     // Check if user can change their existing pick
-    if (!(await canUserChangePick(body.userId, body.gameId, db))) {
+    if (!(await canUserChangePick(authenticatedUserId, body.gameId, db))) {
       return new Response(JSON.stringify({ 
         error: 'Pick already locked',
         message: 'Your pick for this game is already locked and cannot be changed.',
@@ -720,22 +1064,42 @@ async function handlePickSubmission(request: Request, db: D1DatabaseManager): Pr
     
     // Insert or update the pick with lock information
     const lockedAt = new Date().toISOString()
-    const pickId = `${body.userId}-${body.gameId}`
+    const pickId = `${authenticatedUserId}-${body.gameId}`
     
     await db.query(
       `INSERT OR REPLACE INTO picks 
        (id, userId, gameId, teamId, points, lockedAt, isLocked, autoGenerated, createdAt, updatedAt)
        VALUES (?, ?, ?, ?, 1, ?, 1, 0, datetime('now'), datetime('now'))`,
-      [pickId, body.userId, body.gameId, body.teamId, lockedAt]
+      [pickId, authenticatedUserId, body.gameId, body.teamId, lockedAt]
     )
     
     const timeUntilLock = await getTimeUntilLock(game.lockTime)
+    
+    // Broadcast pick submission event
+    try {
+      const eventSystem = new EventSystem(db)
+      const broadcaster = new EventBroadcaster(eventSystem)
+      
+      // Get team info for the event
+      const teamResult = await db.query(`SELECT id, name, abbreviation FROM teams WHERE id = ?`, [body.teamId])
+      if (teamResult.results && teamResult.results.length > 0) {
+        const team = teamResult.results[0] as any
+        await broadcaster.broadcastPickSubmitted(
+          parseInt(authenticatedUserId), 
+          body.gameId, 
+          team
+        )
+      }
+    } catch (eventError) {
+      console.error('Failed to broadcast pick submission event:', eventError)
+      // Don't fail the pick submission if event broadcasting fails
+    }
     
     return new Response(JSON.stringify({ 
       success: true,
       pick: {
         id: pickId,
-        userId: body.userId,
+        userId: authenticatedUserId,
         gameId: body.gameId,
         teamId: body.teamId,
         isLocked: true,
@@ -1888,7 +2252,13 @@ async function getUserIdFromRequest(request: Request, env: Env): Promise<string 
 }
 
 async function createJWT(payload: any, env: Env): Promise<string> {
-  const secret = new TextEncoder().encode(env.NEXTAUTH_SECRET || 'fallback-secret-key')
+  if (!env.NEXTAUTH_SECRET) {
+    return new Response(JSON.stringify({ error: 'Authentication service unavailable' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    })
+  }
+  const secret = new TextEncoder().encode(env.NEXTAUTH_SECRET)
   
   return await new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
@@ -1898,7 +2268,13 @@ async function createJWT(payload: any, env: Env): Promise<string> {
 }
 
 async function verifyJWT(token: string, env: Env): Promise<any> {
-  const secret = new TextEncoder().encode(env.NEXTAUTH_SECRET || 'fallback-secret-key')
+  if (!env.NEXTAUTH_SECRET) {
+    return new Response(JSON.stringify({ error: 'Authentication service unavailable' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    })
+  }
+  const secret = new TextEncoder().encode(env.NEXTAUTH_SECRET)
   
   const { payload } = await jwtVerify(token, secret)
   return payload

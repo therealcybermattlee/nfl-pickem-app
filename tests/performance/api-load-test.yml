@@ -1,0 +1,138 @@
+config:
+  target: 'https://nfl-pickem-app-production.cybermattlee-llc.workers.dev'
+  phases:
+    # Warm up phase
+    - duration: 30
+      arrivalRate: 2
+      name: "Warmup"
+    # Light load - normal usage
+    - duration: 60
+      arrivalRate: 10
+      name: "Light load - 10 concurrent users"
+    # Medium load - busy periods
+    - duration: 60
+      arrivalRate: 25
+      name: "Medium load - 25 concurrent users"
+    # Heavy load - peak game day
+    - duration: 60
+      arrivalRate: 50
+      name: "Heavy load - 50 concurrent users"
+    # Stress test - deadline rush
+    - duration: 30
+      arrivalRate: 100
+      name: "Stress test - 100 concurrent users"
+  defaults:
+    headers:
+      'Content-Type': 'application/json'
+  plugins:
+    expect: {}
+    apdex:
+      threshold: 500  # 500ms target response time
+    metrics-by-endpoint: {}
+
+scenarios:
+  - name: "Authentication Flow"
+    weight: 30
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "test@example.com"
+            password: "password123"
+          expect:
+            - statusCode: 200
+            - hasProperty: "token"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      
+      - get:
+          url: "/api/auth/me"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+            - hasProperty: "user"
+
+  - name: "Game Data Access"
+    weight: 40
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "test@example.com"
+            password: "password123"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      
+      - get:
+          url: "/api/games"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+            - contentType: json
+          capture:
+            - json: "$[0].id"
+              as: "gameId"
+      
+      - get:
+          url: "/api/games/{{ gameId }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+
+  - name: "Pick Submission"
+    weight: 25
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "test@example.com"
+            password: "password123"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      
+      - get:
+          url: "/api/games"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          capture:
+            - json: "$[0].id"
+              as: "gameId"
+            - json: "$[0].homeTeam.id"
+              as: "teamId"
+      
+      - post:
+          url: "/api/picks"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            gameId: "{{ gameId }}"
+            teamId: "{{ teamId }}"
+            confidence: 5
+          expect:
+            - statusCode: 200
+
+  - name: "Leaderboard Access"
+    weight: 5
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "test@example.com"
+            password: "password123"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      
+      - get:
+          url: "/api/leaderboard"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+            - contentType: json

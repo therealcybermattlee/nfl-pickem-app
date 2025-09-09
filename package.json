@@ -11,7 +11,32 @@
     "lint": "eslint . --ext js,jsx,ts,tsx --report-unused-disable-directives --max-warnings 0",
     "workers:dev": "wrangler dev --config wrangler-workers.toml",
     "workers:deploy": "wrangler deploy --config wrangler-workers.toml",
-    "workers:deploy-prod": "wrangler deploy --config wrangler-workers.toml --env production"
+    "workers:deploy-prod": "wrangler deploy --config wrangler-workers.toml --env production",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:worker": "vitest run --config vitest.worker.config.ts",
+    "test:components": "vitest run --config vitest.components.config.ts",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:performance": "vitest run --config vitest.performance.config.ts",
+    "test:security": "vitest run --config vitest.security.config.ts",
+    "test:all": "npm run test:run && npm run test:worker && npm run test:e2e",
+    "test:watch": "vitest --watch",
+    "playwright:install": "playwright install",
+    "perf:run": "node tests/performance/performance-runner.js",
+    "perf:api": "npx artillery run tests/performance/api-load-test.yml",
+    "perf:stress": "npx artillery run tests/performance/game-day-stress-test.yml",
+    "perf:frontend": "npx playwright test tests/performance/frontend-performance.spec.ts",
+    "perf:timelock": "npx playwright test tests/performance/time-lock-performance.spec.ts",
+    "prod:health": "echo 'Testing Frontend:' && curl -s -o /dev/null -w 'Frontend Status: %{http_code}\\n' https://pickem.leefamilysso.com && echo 'Testing API:' && curl -s https://nfl-pickem-app-production.cybermattlee-llc.workers.dev/api/teams | head -1",
+    "prod:sync": "curl -X POST https://nfl-pickem-app-production.cybermattlee-llc.workers.dev/api/odds/sync",
+    "prod:deploy": "npm run build && npm run workers:deploy && npm run prod:health",
+    "prod:monitor": "echo 'Production Monitoring:' && npm run prod:health && echo 'Database Status:' && wrangler d1 execute nfl-pickem-db --remote --command=\"SELECT COUNT(*) as users FROM users; SELECT COUNT(*) as games FROM games WHERE season = 2025; SELECT COUNT(*) as picks FROM picks;\"",
+    "prod:db:status": "wrangler d1 execute nfl-pickem-db --remote --command=\"SELECT COUNT(*) as users FROM users; SELECT COUNT(*) as games FROM games WHERE season = 2025; SELECT COUNT(*) as picks FROM picks; SELECT oddsProvider, COUNT(*) as count FROM games WHERE season = 2025 GROUP BY oddsProvider;\"",
+    "prod:logs": "wrangler tail nfl-pickem-app-production --format=pretty"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
@@ -19,7 +44,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.1",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250905.0",
@@ -36,6 +62,18 @@
     "tailwindcss": "^3.3.6",
     "typescript": "^5.2.2",
     "vite": "^5.0.8",
-    "wrangler": "^4.34.0"
+    "wrangler": "^4.34.0",
+    "@playwright/test": "^1.40.0",
+    "@testing-library/jest-dom": "^6.1.5",
+    "@testing-library/react": "^14.1.2",
+    "@testing-library/user-event": "^14.5.1",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20.10.0",
+    "@vitest/coverage-v8": "^1.0.4",
+    "@vitest/ui": "^1.0.4",
+    "jsdom": "^23.0.1",
+    "undici": "^5.28.2",
+    "vitest": "^1.0.4",
+    "vitest-fetch-mock": "^0.2.2"
   }
 }

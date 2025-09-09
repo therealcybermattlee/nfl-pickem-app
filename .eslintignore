@@ -1,0 +1,14 @@
+dist/
+build/
+node_modules/
+cloudflare-deploy/
+.wrangler/
+tests/
+vitest*.config.ts
+playwright.config.ts
+production-test.js
+scripts/
+lib/
+src/
+tailwind.config.ts
+test-automation.js

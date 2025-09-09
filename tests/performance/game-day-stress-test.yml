@@ -1,0 +1,148 @@
+config:
+  target: 'https://nfl-pickem-app-production.cybermattlee-llc.workers.dev'
+  phases:
+    # Pre-game day - normal activity
+    - duration: 60
+      arrivalRate: 5
+      name: "Pre-game normal activity"
+    
+    # Game day morning - users checking games
+    - duration: 120
+      arrivalRate: 15
+      name: "Game day morning - users checking games"
+    
+    # Hour before games - deadline rush
+    - duration: 180
+      arrivalRate: 50
+      name: "Deadline rush - 1 hour before"
+    
+    # Final 15 minutes - panic picks
+    - duration: 120
+      arrivalRate: 100
+      name: "Final 15 minutes panic picks"
+    
+    # Game time - reduced activity
+    - duration: 60
+      arrivalRate: 10
+      name: "Game time - checking scores"
+
+  defaults:
+    headers:
+      'Content-Type': 'application/json'
+  
+  plugins:
+    expect: {}
+    apdex:
+      threshold: 1000  # More lenient for stress testing
+    metrics-by-endpoint: {}
+
+scenarios:
+  - name: "Deadline Rush Pick Submission"
+    weight: 60  # Most common scenario during peak
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "test@example.com"
+            password: "password123"
+          expect:
+            - statusCode: 200
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      
+      # Get available games
+      - get:
+          url: "/api/games"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+          capture:
+            - json: "$[0].id"
+              as: "gameId1"
+            - json: "$[0].homeTeam.id"
+              as: "team1Id"
+            - json: "$[1].id"
+              as: "gameId2"
+            - json: "$[1].awayTeam.id"
+              as: "team2Id"
+      
+      # Submit multiple picks quickly (simulating user making all picks)
+      - post:
+          url: "/api/picks"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            gameId: "{{ gameId1 }}"
+            teamId: "{{ team1Id }}"
+            confidence: 7
+          expect:
+            - statusCode: [200, 409]  # 409 if game is locked
+      
+      - post:
+          url: "/api/picks"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            gameId: "{{ gameId2 }}"
+            teamId: "{{ team2Id }}"
+            confidence: 5
+          expect:
+            - statusCode: [200, 409]
+      
+      # Check leaderboard after picks
+      - get:
+          url: "/api/leaderboard"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+
+  - name: "Real-time Score Checking"
+    weight: 25
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "test@example.com"
+            password: "password123"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      
+      # Repeatedly check games for score updates
+      - loop:
+          - get:
+              url: "/api/games"
+              headers:
+                Authorization: "Bearer {{ authToken }}"
+              expect:
+                - statusCode: 200
+          
+          - think: 2  # Wait 2 seconds between checks
+        count: 5
+
+  - name: "Leaderboard Monitoring"
+    weight: 15
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "test@example.com"
+            password: "password123"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      
+      # Check leaderboard multiple times (users refreshing)
+      - loop:
+          - get:
+              url: "/api/leaderboard"
+              headers:
+                Authorization: "Bearer {{ authToken }}"
+              expect:
+                - statusCode: 200
+          
+          - think: 3
+        count: 3

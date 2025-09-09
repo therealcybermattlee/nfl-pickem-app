@@ -24,6 +24,8 @@ export interface Game {
   gameType?: string;
   status?: string;
   isCompleted: boolean;
+  isLocked?: boolean;
+  lockTime?: string;
   homeScore?: number;
   awayScore?: number;
   winnerTeamId?: string;
@@ -72,6 +74,12 @@ export interface Leaderboard {
   entries: LeaderboardEntry[];
   totalGames: number;
   completedGames: number;
+}
+
+export interface GameStatus extends Game {
+  timeToLock?: number; // milliseconds until game locks
+  isLockingSoon?: boolean; // true if locks within 1 hour
+  lockWarningMessage?: string;
 }
 
 export interface ApiResponse<T> {

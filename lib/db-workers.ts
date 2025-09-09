@@ -8,15 +8,17 @@ const UserSchema = z.object({
   username: z.string().nullable(),
   image: z.string().nullable(),
   password: z.string().nullable(), // bcrypt hash
-  passwordHash: z.string().nullable(), // alias for compatibility
-  passwordSalt: z.string().nullable(),
-  microsoftId: z.string().nullable(),
-  role: z.string().default('user'),
   emailVerified: z.coerce.date().nullable(),
-  isAdmin: z.boolean().default(false),
+  isAdmin: z.coerce.boolean().default(false),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date()
-})
+}).transform(data => ({
+  ...data,
+  passwordHash: data.password, // Alias for compatibility
+  passwordSalt: null,
+  microsoftId: null,
+  role: 'user'
+}))
 
 const TeamSchema = z.object({
   id: z.string(),
@@ -83,6 +85,12 @@ export class D1DatabaseManager {
 
   constructor(db: D1Database) {
     this.db = db
+  }
+
+  // Helper method for raw SQL queries (used by time-lock system)
+  async query(sql: string, params: any[] = []) {
+    const result = await this.db.prepare(sql).bind(...params).all()
+    return result
   }
 
   // User operations
@@ -163,9 +171,9 @@ export class D1DatabaseManager {
         g.id, g.espnId, g.homeTeamId, g.awayTeamId, g.gameDate, g.week, g.season, g.isCompleted,
         g.homeScore, g.awayScore, g.winnerTeamId, g.homeSpread, g.awaySpread,
         g.homeMoneyline, g.awayMoneyline, g.overUnder, g.oddsProvider, g.oddsUpdatedAt,
-        ht.id as homeTeam_id, ht.name as homeTeam_name, ht.displayName as homeTeam_displayName,
+        ht.id as homeTeam_id, ht.name as homeTeam_name, 
         ht.abbreviation as homeTeam_abbreviation, ht.logo as homeTeam_logo, ht.color as homeTeam_color,
-        at.id as awayTeam_id, at.name as awayTeam_name, at.displayName as awayTeam_displayName,
+        at.id as awayTeam_id, at.name as awayTeam_name, 
         at.abbreviation as awayTeam_abbreviation, at.logo as awayTeam_logo, at.color as awayTeam_color
       FROM games g
       LEFT JOIN teams ht ON g.homeTeamId = ht.id
@@ -204,7 +212,7 @@ export class D1DatabaseManager {
       const homeTeam = TeamSchema.parse({
         id: result.homeTeam_id,
         name: result.homeTeam_name,
-        displayName: result.homeTeam_displayName,
+        displayName: result.homeTeam_name,
         abbreviation: result.homeTeam_abbreviation,
         conference: null, // Not in actual DB schema
         division: null, // Not in actual DB schema
@@ -218,7 +226,7 @@ export class D1DatabaseManager {
       const awayTeam = TeamSchema.parse({
         id: result.awayTeam_id,
         name: result.awayTeam_name,
-        displayName: result.awayTeam_displayName,
+        displayName: result.awayTeam_name,
         abbreviation: result.awayTeam_abbreviation,
         conference: null, // Not in actual DB schema
         division: null, // Not in actual DB schema
