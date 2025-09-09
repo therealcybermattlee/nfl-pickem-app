@@ -41,12 +41,11 @@ export function HomePage() {
           return;
         }
 
-        // Fetch picks
+        // Fetch picks using ApiClient
         try {
-          const picksResponse = await fetch('/api/picks');
-          if (picksResponse.ok) {
-            const picksData = await picksResponse.json();
-            setPicks(picksData.picks || []);
+          const picksResponse = await ApiClient.get('/api/picks');
+          if (picksResponse.success && picksResponse.data) {
+            setPicks(picksResponse.data.picks || []);
           }
         } catch (pickError) {
           console.log('No picks found or picks API unavailable');
@@ -67,18 +66,16 @@ export function HomePage() {
       return;
     }
 
+    // Get auth token (simplified for home page - should use proper auth)
+    const authToken = 'dummy-token'; // TODO: Implement proper auth for home page
+    
     try {
-      const response = await fetch('/api/picks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: selectedUser,
-          gameId: gameId,
-          teamId: teamId
-        })
-      });
+      const response = await ApiClient.submitPick({
+        gameId: gameId,
+        teamId: teamId
+      }, authToken);
 
-      if (response.ok) {
+      if (response.success) {
         // Update picks in state
         const userName = USERS.find(u => u.id === selectedUser)?.name || 'Unknown';
         const newPick: Pick = {
