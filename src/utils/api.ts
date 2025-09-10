@@ -127,7 +127,7 @@ export class ApiClient {
     return this.get<{ generated: number }>(`/api/picks/auto-generate?userId=${userId}`);
   }
 
-  static async submitPick(pick: { gameId: string; teamId: string }, token: string): Promise<ApiResponse<any>> {
+  static async submitPick(pick: { gameId: string; teamId: string; userId: string }, token: string): Promise<ApiResponse<any>> {
     return this.post('/api/picks', pick, token);
   }
 

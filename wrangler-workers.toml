@@ -21,7 +21,6 @@ name = "nfl-pickem-app-production"
 
 [env.production.vars]
 NODE_ENV = "production"
-NEXTAUTH_URL = "https://nfl-pickem-app-production.cybermattlee-llc.workers.dev"
 THE_ODDS_API_BASE_URL = "https://api.the-odds-api.com/v4"
 CURRENT_NFL_SEASON = "2025"
 CURRENT_NFL_WEEK = "1"
@@ -39,4 +38,4 @@ crons = ["*/15 * * * *"]
 
 # Secrets to be set via wrangler secret put
 # THE_ODDS_API_KEY
-# NEXTAUTH_SECRET
+# JWT_SECRET

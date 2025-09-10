@@ -26,16 +26,6 @@ export function Navigation() {
               Home
             </Link>
             <Link
-              to="/teams"
-              className={`${
-                isActive('/teams') 
-                  ? 'text-primary border-b-2 border-primary' 
-                  : 'text-muted-foreground hover:text-primary'
-              } px-3 py-2 transition-colors`}
-            >
-              Teams
-            </Link>
-            <Link
               to="/games"
               className={`${
                 isActive('/games') 

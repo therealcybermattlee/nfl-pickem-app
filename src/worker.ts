@@ -8,11 +8,23 @@ import {
   EventBroadcaster 
 } from './lib/event-system'
 
+// CORS headers - restrict to known domains
+const corsHeaders = {
+  'Access-Control-Allow-Origin': 'https://pickem.leefamilysso.com',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Allow-Credentials': 'true',
+  // Security headers
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'X-XSS-Protection': '1; mode=block',
+  'Referrer-Policy': 'strict-origin-when-cross-origin'
+}
+
 interface Env {
   DB: D1Database
-  NEXTAUTH_SECRET?: string
+  JWT_SECRET?: string
   THE_ODDS_API_KEY?: string
-  NEXTAUTH_URL?: string
   THE_ODDS_API_BASE_URL?: string
   CURRENT_NFL_SEASON?: string
   CURRENT_NFL_WEEK?: string
@@ -109,19 +121,6 @@ export default {
     
     // Initialize database manager
     const db = new D1DatabaseManager(env.DB)
-    
-    // CORS headers - restrict to known domains
-    const corsHeaders = {
-      'Access-Control-Allow-Origin': 'https://pickem.leefamilysso.com',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Allow-Credentials': 'true',
-      // Security headers
-      'X-Content-Type-Options': 'nosniff',
-      'X-Frame-Options': 'DENY',
-      'X-XSS-Protection': '1; mode=block',
-      'Referrer-Policy': 'strict-origin-when-cross-origin'
-    }
     
     // Handle CORS preflight
     if (request.method === 'OPTIONS') {
@@ -274,25 +273,18 @@ async function handleApiRequest(request: Request, pathname: string, db: D1Databa
     }
     
     if (method === 'POST') {
-      // Require authentication for pick submission
-      const authHeader = request.headers.get('authorization')
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return new Response(JSON.stringify({ error: 'Authorization required' }), {
-          status: 401,
-          headers: { 'Content-Type': 'application/json' }
-        })
-      }
-
-      const token = authHeader.substring(7)
-      const userId = await getUserIdFromRequest(request, env)
+      // Parse request body to get userId (no authentication required for family app)
+      const body = await request.json()
+      const userId = body.userId
+      
       if (!userId) {
-        return new Response(JSON.stringify({ error: 'Invalid token' }), {
-          status: 401,
-          headers: { 'Content-Type': 'application/json' }
+        return new Response(JSON.stringify({ error: 'userId is required in request body' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
         })
       }
 
-      return await handlePickSubmission(request, db, userId)
+      return await handlePickSubmission(request, db, userId, body)
     }
   }
 
@@ -635,13 +627,10 @@ async function handleApiRequest(request: Request, pathname: string, db: D1Databa
       if (authHeader && authHeader.startsWith('Bearer ')) {
         try {
           const token = authHeader.substring(7)
-          if (!env.NEXTAUTH_SECRET) {
-    return new Response(JSON.stringify({ error: 'Authentication service unavailable' }), {
-      status: 503,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    })
-  }
-  const secret = new TextEncoder().encode(env.NEXTAUTH_SECRET)
+          if (!env.JWT_SECRET) {
+            throw new Error('JWT_SECRET not configured')
+          }
+          const secret = new TextEncoder().encode(env.JWT_SECRET)
           const { payload } = await jwtVerify(token, secret)
           userId = payload.userId as number
         } catch (error) {
@@ -664,13 +653,10 @@ async function handleApiRequest(request: Request, pathname: string, db: D1Databa
       if (authHeader && authHeader.startsWith('Bearer ')) {
         try {
           const token = authHeader.substring(7)
-          if (!env.NEXTAUTH_SECRET) {
-    return new Response(JSON.stringify({ error: 'Authentication service unavailable' }), {
-      status: 503,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    })
-  }
-  const secret = new TextEncoder().encode(env.NEXTAUTH_SECRET)
+          if (!env.JWT_SECRET) {
+            throw new Error('JWT_SECRET not configured')
+          }
+          const secret = new TextEncoder().encode(env.JWT_SECRET)
           const { payload } = await jwtVerify(token, secret)
           userId = payload.userId as number
         } catch (error) {
@@ -786,13 +772,10 @@ async function handleApiRequest(request: Request, pathname: string, db: D1Databa
       
       try {
         const token = authHeader.substring(7)
-        if (!env.NEXTAUTH_SECRET) {
-    return new Response(JSON.stringify({ error: 'Authentication service unavailable' }), {
-      status: 503,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    })
-  }
-  const secret = new TextEncoder().encode(env.NEXTAUTH_SECRET)
+        if (!env.JWT_SECRET) {
+          throw new Error('JWT_SECRET not configured')
+        }
+        const secret = new TextEncoder().encode(env.JWT_SECRET)
         const { payload } = await jwtVerify(token, secret)
         const userId = payload.userId as number
         
@@ -985,92 +968,92 @@ async function getTimeUntilLock(lockTime: string): Promise<number> {
 /**
  * Enhanced pick submission handler with time-lock validation
  */
-async function handlePickSubmission(request: Request, db: D1DatabaseManager, userId?: string): Promise<Response> {
+async function handlePickSubmission(request: Request, db: D1DatabaseManager, userId: string, body?: any): Promise<Response> {
   try {
-    const body = await request.json() as PickRequest
+    // Use the body passed in, or parse from request if not provided (for backward compatibility)
+    const pickData = body || (await request.json()) as PickRequest
     
     // Validate required fields
-    if (!body.gameId || !body.teamId) {
+    if (!pickData.gameId || !pickData.teamId) {
       return new Response(JSON.stringify({ 
         error: 'Missing required fields',
         required: ['gameId', 'teamId']
       }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json', ...corsHeaders }
       })
     }
 
-    // Use authenticated userId (from token) instead of body userId for security
-    const authenticatedUserId = userId || body.userId
-    if (!authenticatedUserId) {
-      return new Response(JSON.stringify({ error: 'User authentication required' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' }
+    // Use the provided userId (no token authentication required for family app)
+    if (!userId) {
+      return new Response(JSON.stringify({ error: 'User ID is required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders }
       })
     }
     
     // Check if game is locked
-    if (await isGameLocked(body.gameId, db)) {
+    if (await isGameLocked(pickData.gameId, db)) {
       return new Response(JSON.stringify({ 
         error: 'Game is locked',
         message: 'This game is locked. Picks cannot be modified.',
-        gameId: body.gameId
+        gameId: pickData.gameId
       }), {
         status: 403,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json', ...corsHeaders }
       })
     }
     
     // Check if user can change their existing pick
-    if (!(await canUserChangePick(authenticatedUserId, body.gameId, db))) {
+    if (!(await canUserChangePick(userId, pickData.gameId, db))) {
       return new Response(JSON.stringify({ 
         error: 'Pick already locked',
         message: 'Your pick for this game is already locked and cannot be changed.',
-        gameId: body.gameId
+        gameId: pickData.gameId
       }), {
         status: 403,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json', ...corsHeaders }
       })
     }
     
     // Verify the team exists and is playing in this game
     const gameResult = await db.query(
       `SELECT homeTeamId, awayTeamId, lockTime FROM games WHERE id = ?`,
-      [body.gameId]
+      [pickData.gameId]
     )
     
     if (!gameResult.results || gameResult.results.length === 0) {
       return new Response(JSON.stringify({ 
         error: 'Game not found',
-        gameId: body.gameId
+        gameId: pickData.gameId
       }), {
         status: 404,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json', ...corsHeaders }
       })
     }
     
     const game = gameResult.results[0] as any
-    if (body.teamId !== game.homeTeamId && body.teamId !== game.awayTeamId) {
+    if (pickData.teamId !== game.homeTeamId && pickData.teamId !== game.awayTeamId) {
       return new Response(JSON.stringify({ 
         error: 'Invalid team',
         message: 'Selected team is not playing in this game.',
-        gameId: body.gameId,
-        teamId: body.teamId
+        gameId: pickData.gameId,
+        teamId: pickData.teamId
       }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json', ...corsHeaders }
       })
     }
     
     // Insert or update the pick with lock information
     const lockedAt = new Date().toISOString()
-    const pickId = `${authenticatedUserId}-${body.gameId}`
+    const pickId = `${userId}-${pickData.gameId}`
     
     await db.query(
       `INSERT OR REPLACE INTO picks 
        (id, userId, gameId, teamId, points, lockedAt, isLocked, autoGenerated, createdAt, updatedAt)
        VALUES (?, ?, ?, ?, 1, ?, 1, 0, datetime('now'), datetime('now'))`,
-      [pickId, authenticatedUserId, body.gameId, body.teamId, lockedAt]
+      [pickId, userId, pickData.gameId, pickData.teamId, lockedAt]
     )
     
     const timeUntilLock = await getTimeUntilLock(game.lockTime)
@@ -1081,12 +1064,12 @@ async function handlePickSubmission(request: Request, db: D1DatabaseManager, use
       const broadcaster = new EventBroadcaster(eventSystem)
       
       // Get team info for the event
-      const teamResult = await db.query(`SELECT id, name, abbreviation FROM teams WHERE id = ?`, [body.teamId])
+      const teamResult = await db.query(`SELECT id, name, abbreviation FROM teams WHERE id = ?`, [pickData.teamId])
       if (teamResult.results && teamResult.results.length > 0) {
         const team = teamResult.results[0] as any
         await broadcaster.broadcastPickSubmitted(
-          parseInt(authenticatedUserId), 
-          body.gameId, 
+          parseInt(userId), 
+          pickData.gameId, 
           team
         )
       }
@@ -1099,9 +1082,9 @@ async function handlePickSubmission(request: Request, db: D1DatabaseManager, use
       success: true,
       pick: {
         id: pickId,
-        userId: authenticatedUserId,
-        gameId: body.gameId,
-        teamId: body.teamId,
+        userId: userId,
+        gameId: pickData.gameId,
+        teamId: pickData.teamId,
         isLocked: true,
         lockedAt,
         autoGenerated: false,
@@ -1109,7 +1092,7 @@ async function handlePickSubmission(request: Request, db: D1DatabaseManager, use
       }
     }), {
       status: 201,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
     })
     
   } catch (error) {
@@ -1119,7 +1102,7 @@ async function handlePickSubmission(request: Request, db: D1DatabaseManager, use
       details: error instanceof Error ? error.message : 'Unknown error'
     }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
     })
   }
 }
@@ -2005,14 +1988,16 @@ async function fetchUpdatedScoresFromESPN(games: any[]): Promise<any[]> {
           const hasScoreUpdate = 
             espnGame.homeScore !== ourGame.homeScore ||
             espnGame.awayScore !== ourGame.awayScore ||
-            (espnGame.status === 'FINAL' && !ourGame.isCompleted)
+            (espnGame.isCompleted && !ourGame.isCompleted) ||
+            (espnGame.status === 'final' && !ourGame.isCompleted)
           
           if (hasScoreUpdate) {
             updatedGames.push({
               ...ourGame,
               homeScore: espnGame.homeScore,
               awayScore: espnGame.awayScore,
-              isCompleted: espnGame.status === 'FINAL' || espnGame.status === 'COMPLETED',
+              status: espnGame.status,
+              isCompleted: espnGame.isCompleted || espnGame.status === 'final',
               winnerTeamId: getWinnerTeamId(espnGame, ourGame)
             })
           }
@@ -2026,6 +2011,33 @@ async function fetchUpdatedScoresFromESPN(games: any[]): Promise<any[]> {
   }
   
   return updatedGames
+}
+
+/**
+ * Normalize ESPN API status to our expected format (database constraint: lowercase)
+ */
+function normalizeESPNStatus(espnStatus: string): string {
+  switch (espnStatus) {
+    case 'STATUS_FINAL':
+      return 'final'
+    case 'STATUS_IN_PROGRESS':
+      return 'in_progress'
+    case 'STATUS_SCHEDULED':
+      return 'upcoming'
+    case 'STATUS_POSTPONED':
+      return 'upcoming' // Map postponed to upcoming for now
+    case 'STATUS_SUSPENDED':
+      return 'in_progress' // Map suspended to in_progress
+    default:
+      // Fallback: remove STATUS_ prefix and lowercase
+      const normalized = espnStatus.replace('STATUS_', '').toLowerCase()
+      // Map common variations to valid database values
+      if (normalized === 'final') return 'final'
+      if (normalized === 'completed') return 'final'
+      if (normalized === 'in_progress' || normalized === 'inprogress') return 'in_progress'
+      if (normalized === 'locked') return 'locked'
+      return 'upcoming' // Default fallback
+  }
 }
 
 /**
@@ -2054,7 +2066,8 @@ async function fetchESPNGamesForWeek(week: number, season: number): Promise<any[
     
     return {
       id: event.id,
-      status: competition?.status?.type?.name || 'SCHEDULED',
+      status: normalizeESPNStatus(competition?.status?.type?.name || 'SCHEDULED'),
+      isCompleted: competition?.status?.type?.completed || false,
       homeTeamId: homeCompetitor?.team?.abbreviation,
       awayTeamId: awayCompetitor?.team?.abbreviation,
       homeScore: homeCompetitor?.score ? parseInt(homeCompetitor.score) : null,
@@ -2076,6 +2089,7 @@ async function updateGameScore(db: D1DatabaseManager, updatedGame: any): Promise
         SET homeScore = ?, 
             awayScore = ?, 
             isCompleted = ?,
+            status = ?,
             winnerTeamId = ?,
             updatedAt = datetime('now')
         WHERE id = ?
@@ -2083,6 +2097,7 @@ async function updateGameScore(db: D1DatabaseManager, updatedGame: any): Promise
         updatedGame.homeScore,
         updatedGame.awayScore,
         updatedGame.isCompleted ? 1 : 0,
+        updatedGame.status || 'upcoming',
         updatedGame.winnerTeamId,
         updatedGame.id
       ).run()
@@ -2094,12 +2109,14 @@ async function updateGameScore(db: D1DatabaseManager, updatedGame: any): Promise
         SET homeScore = ?, 
             awayScore = ?, 
             isCompleted = ?,
+            status = ?,
             winnerTeamId = ?
         WHERE id = ?
       `).bind(
         updatedGame.homeScore,
         updatedGame.awayScore,
         updatedGame.isCompleted ? 1 : 0,
+        updatedGame.status || 'upcoming',
         updatedGame.winnerTeamId,
         updatedGame.id
       ).run()
@@ -2252,13 +2269,10 @@ async function getUserIdFromRequest(request: Request, env: Env): Promise<string 
 }
 
 async function createJWT(payload: any, env: Env): Promise<string> {
-  if (!env.NEXTAUTH_SECRET) {
-    return new Response(JSON.stringify({ error: 'Authentication service unavailable' }), {
-      status: 503,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    })
+  if (!env.JWT_SECRET) {
+    throw new Error('JWT_SECRET not configured')
   }
-  const secret = new TextEncoder().encode(env.NEXTAUTH_SECRET)
+  const secret = new TextEncoder().encode(env.JWT_SECRET)
   
   return await new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
@@ -2268,13 +2282,10 @@ async function createJWT(payload: any, env: Env): Promise<string> {
 }
 
 async function verifyJWT(token: string, env: Env): Promise<any> {
-  if (!env.NEXTAUTH_SECRET) {
-    return new Response(JSON.stringify({ error: 'Authentication service unavailable' }), {
-      status: 503,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    })
+  if (!env.JWT_SECRET) {
+    throw new Error('JWT_SECRET not configured')
   }
-  const secret = new TextEncoder().encode(env.NEXTAUTH_SECRET)
+  const secret = new TextEncoder().encode(env.JWT_SECRET)
   
   const { payload } = await jwtVerify(token, secret)
   return payload

@@ -2,7 +2,6 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Navigation } from './components/Navigation';
 import { HomePage } from './pages/HomePage';
-import { TeamsPage } from './pages/TeamsPage';
 import { GamesPage } from './pages/GamesPage';
 import { LeaderboardPage } from './pages/LeaderboardPage';
 import { ErrorBoundary, AccessibilityProvider, SkipNav } from './components';
@@ -23,7 +22,6 @@ function App() {
             <ErrorBoundary>
               <Routes>
                 <Route path="/" element={<HomePage />} />
-                <Route path="/teams" element={<TeamsPage />} />
                 <Route path="/games" element={<GamesPage />} />
                 <Route path="/leaderboard" element={<LeaderboardPage />} />
               </Routes>

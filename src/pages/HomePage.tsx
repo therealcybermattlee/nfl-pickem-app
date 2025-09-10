@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { ApiClient } from '../utils/api';
 import type { Game } from '../types/api';
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 
 interface User {
   id: string;
@@ -22,43 +23,89 @@ const USERS: User[] = [
   { id: 'rocky-user-id', name: 'RockyDaRock' }
 ];
 
+// Helper function to get current NFL week (rough estimate based on NFL season start)
+const getCurrentNFLWeek = (): number => {
+  // NFL 2025 season starts around September 4, 2025
+  const seasonStart = new Date('2025-09-04');
+  const now = new Date();
+  const daysSinceStart = Math.floor((now.getTime() - seasonStart.getTime()) / (1000 * 60 * 60 * 24));
+  
+  if (daysSinceStart < 0) return 1; // Before season starts
+  
+  const weeksSinceStart = Math.floor(daysSinceStart / 7) + 1;
+  return Math.min(Math.max(weeksSinceStart, 1), 18); // Clamp between 1 and 18
+};
+
 export function HomePage() {
   const [games, setGames] = useState<Game[]>([]);
   const [picks, setPicks] = useState<Pick[]>([]);
   const [selectedUser, setSelectedUser] = useState<string>('');
+  const [currentWeek, setCurrentWeek] = useState<number>(getCurrentNFLWeek());
+  const [currentSeason] = useState<number>(2025);
   const [loading, setLoading] = useState(true);
+  const [weekLoading, setWeekLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch games
-        const gamesResponse = await ApiClient.getGames(1, 2025);
-        if (gamesResponse.success && gamesResponse.data) {
-          setGames(gamesResponse.data);
-        } else {
-          setError(gamesResponse.error || 'Failed to load games');
-          return;
-        }
-
-        // Fetch picks using ApiClient
-        try {
-          const picksResponse = await ApiClient.get('/api/picks');
-          if (picksResponse.success && picksResponse.data) {
-            setPicks(picksResponse.data.picks || []);
-          }
-        } catch (pickError) {
-          console.log('No picks found or picks API unavailable');
-        }
-      } catch (err) {
-        setError('Failed to load data');
-      } finally {
-        setLoading(false);
+  const fetchData = async (week: number, showWeekLoading: boolean = false) => {
+    if (showWeekLoading) {
+      setWeekLoading(true);
+    } else {
+      setLoading(true);
+    }
+    
+    setError(null);
+    
+    try {
+      // Fetch games for the specified week
+      const gamesResponse = await ApiClient.getGames(week, currentSeason);
+      if (gamesResponse.success && gamesResponse.data) {
+        setGames(gamesResponse.data);
+      } else {
+        setError(gamesResponse.error || `Failed to load games for Week ${week}`);
+        return;
       }
-    };
 
-    fetchData();
-  }, []);
+      // Fetch picks using ApiClient
+      try {
+        const picksResponse = await ApiClient.get('/api/picks');
+        if (picksResponse.success && picksResponse.data) {
+          // Filter picks for the current week on the frontend if API doesn't support filtering
+          const allPicks = picksResponse.data.picks || [];
+          setPicks(allPicks);
+        }
+      } catch (pickError) {
+        console.log(`No picks found for Week ${week} or picks API unavailable`);
+      }
+    } catch (err) {
+      setError(`Failed to load data for Week ${week}`);
+    } finally {
+      setLoading(false);
+      setWeekLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData(currentWeek);
+  }, [currentWeek, currentSeason]);
+
+  // Week navigation functions
+  const goToPreviousWeek = () => {
+    if (currentWeek > 1) {
+      setCurrentWeek(currentWeek - 1);
+    }
+  };
+
+  const goToNextWeek = () => {
+    if (currentWeek < 18) {
+      setCurrentWeek(currentWeek + 1);
+    }
+  };
+
+  const handleWeekSelect = (week: number) => {
+    if (week >= 1 && week <= 18 && week !== currentWeek) {
+      setCurrentWeek(week);
+    }
+  };
 
   const handlePickTeam = async (gameId: string, teamId: string, teamAbbr: string) => {
     if (!selectedUser) {
@@ -66,14 +113,12 @@ export function HomePage() {
       return;
     }
 
-    // Get auth token (simplified for home page - should use proper auth)
-    const authToken = 'dummy-token'; // TODO: Implement proper auth for home page
-    
     try {
       const response = await ApiClient.submitPick({
         gameId: gameId,
-        teamId: teamId
-      }, authToken);
+        teamId: teamId,
+        userId: selectedUser
+      }, '');
 
       if (response.success) {
         // Update picks in state
@@ -127,6 +172,86 @@ export function HomePage() {
     <div>
       <h1 className="text-4xl font-bold mb-8">NFL Pick'em Dashboard</h1>
       
+      {/* Week Navigation */}
+      <div className="bg-card rounded-lg border p-4 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-semibold">Week {currentWeek} - {currentSeason} Season</h2>
+          
+          <div className="flex items-center gap-3">
+            {/* Previous Week Button */}
+            <button
+              onClick={goToPreviousWeek}
+              disabled={currentWeek <= 1 || weekLoading}
+              className={`flex items-center gap-1 px-3 py-2 rounded-md font-medium transition-colors ${
+                currentWeek <= 1 || weekLoading
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+              }`}
+            >
+              <ChevronLeftIcon className="w-4 h-4" />
+              Previous
+            </button>
+            
+            {/* Week Selector Dropdown */}
+            <select
+              value={currentWeek}
+              onChange={(e) => handleWeekSelect(parseInt(e.target.value))}
+              disabled={weekLoading}
+              className="px-3 py-2 border rounded-md bg-background font-medium min-w-[120px] disabled:opacity-50"
+            >
+              {Array.from({ length: 18 }, (_, i) => i + 1).map(week => (
+                <option key={week} value={week}>
+                  Week {week}
+                </option>
+              ))}
+            </select>
+            
+            {/* Next Week Button */}
+            <button
+              onClick={goToNextWeek}
+              disabled={currentWeek >= 18 || weekLoading}
+              className={`flex items-center gap-1 px-3 py-2 rounded-md font-medium transition-colors ${
+                currentWeek >= 18 || weekLoading
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+              }`}
+            >
+              Next
+              <ChevronRightIcon className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+        
+        {/* Quick Week Jump Buttons */}
+        <div className="flex flex-wrap gap-2">
+          <span className="text-sm text-muted-foreground mr-2">Quick Jump:</span>
+          {[1, 2, 3, 4, 5, 10, 15, 18].map(week => (
+            <button
+              key={week}
+              onClick={() => handleWeekSelect(week)}
+              disabled={week === currentWeek || weekLoading}
+              className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                week === currentWeek
+                  ? 'bg-blue-600 text-white'
+                  : weekLoading
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              W{week}
+            </button>
+          ))}
+        </div>
+        
+        {/* Loading indicator for week changes */}
+        {weekLoading && (
+          <div className="mt-3 flex items-center gap-2 text-sm text-blue-600">
+            <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            Loading Week {currentWeek} games...
+          </div>
+        )}
+      </div>
+      
       {/* User Selection */}
       <div className="bg-card rounded-lg border p-4 mb-6">
         <h3 className="text-lg font-semibold mb-3">Select Player</h3>
@@ -144,10 +269,20 @@ export function HomePage() {
       
       <div className="grid gap-6">
         <div className="bg-card rounded-lg border p-6">
-          <h2 className="text-2xl font-semibold mb-4">Week 1 Games ({games.length} games)</h2>
+          <h2 className="text-2xl font-semibold mb-4">
+            Week {currentWeek} Games ({games.length} games)
+            {weekLoading && <span className="text-sm text-muted-foreground ml-2">(Loading...)</span>}
+          </h2>
           
           {games.length === 0 ? (
-            <p className="text-muted-foreground">No games found for Week 1, 2025</p>
+            <div className="text-center py-8">
+              <p className="text-muted-foreground text-lg mb-2">
+                No games found for Week {currentWeek}, {currentSeason}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Try selecting a different week or check back later for schedule updates.
+              </p>
+            </div>
           ) : (
             <div className="grid gap-4">
               {games.map((game) => {
@@ -206,12 +341,12 @@ export function HomePage() {
                     <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground mb-3">
                       {game.homeSpread && (
                         <div>
-                          Spread: {game.homeTeam?.abbreviation} {game.homeSpread > 0 ? `+${Math.abs(game.homeSpread / 100).toFixed(1)}` : `-${Math.abs(game.homeSpread / 100).toFixed(1)}`}
+                          Spread: {game.homeTeam?.abbreviation} {game.homeSpread > 0 ? `+${game.homeSpread}` : `${game.homeSpread}`}
                         </div>
                       )}
                       {game.overUnder && (
                         <div>
-                          O/U: {Math.abs(game.overUnder / 100).toFixed(1)}
+                          O/U: {game.overUnder}
                         </div>
                       )}
                     </div>
@@ -259,15 +394,19 @@ export function HomePage() {
               <div className="text-sm text-muted-foreground">Games This Week</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-primary">0</div>
-              <div className="text-sm text-muted-foreground">Picks Made</div>
+              <div className="text-2xl font-bold text-primary">
+                {selectedUser ? picks.filter(p => p.userId === selectedUser).length : picks.length}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {selectedUser ? 'Your Picks' : 'Total Picks'}
+              </div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-primary">1</div>
+              <div className="text-2xl font-bold text-primary">{currentWeek}</div>
               <div className="text-sm text-muted-foreground">Current Week</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-primary">2025</div>
+              <div className="text-2xl font-bold text-primary">{currentSeason}</div>
               <div className="text-sm text-muted-foreground">Season</div>
             </div>
           </div>

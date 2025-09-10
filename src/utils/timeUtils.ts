@@ -50,7 +50,7 @@ export const getGameStatus = (
 ): 'upcoming' | 'locked' | 'inProgress' | 'final' => {
   if (isCompleted) return 'final';
   
-  const gameDate = typeof gameTime === 'string' ? new Date(gameTime) : gameDate;
+  const gameDate = typeof gameTime === 'string' ? new Date(gameTime) : gameTime;
   const now = Date.now();
   const gameStartTime = gameDate.getTime();
   const lockTime = gameStartTime - (lockOffsetMinutes * 60 * 1000);
