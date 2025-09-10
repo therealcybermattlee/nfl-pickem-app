@@ -2602,14 +2602,25 @@ async function fetchESPNGames(season: number): Promise<any[]> {
             const overUnder = odds?.overUnder ? Math.round(odds.overUnder * 100) : null
             const homeSpread = odds?.spread ? Math.round(odds.spread * 100) : null
             
+            // Robust team identification with multiple fallbacks
+            const homeTeamId = homeCompetitor?.team?.abbreviation || homeCompetitor?.team?.name || homeCompetitor?.team?.displayName
+            const awayTeamId = awayCompetitor?.team?.abbreviation || awayCompetitor?.team?.name || awayCompetitor?.team?.displayName
+            
+            // Log team extraction for debugging
+            console.log(`Game ${event.id}: ${awayTeamId} @ ${homeTeamId}`)
+            
+            if (!homeTeamId || !awayTeamId) {
+              console.warn(`Missing team data for game ${event.id}: home=${homeTeamId}, away=${awayTeamId}`)
+            }
+            
             return {
               id: event.id,
               season: season,
               week: week,
               gameDate: event.date,
               status: competition?.status?.type?.name || 'SCHEDULED',
-              homeTeamId: homeCompetitor?.team?.abbreviation,
-              awayTeamId: awayCompetitor?.team?.abbreviation,
+              homeTeamId: homeTeamId,
+              awayTeamId: awayTeamId,
               homeScore: homeCompetitor?.score ? parseInt(homeCompetitor.score) : null,
               awayScore: awayCompetitor?.score ? parseInt(awayCompetitor.score) : null,
               homeSpread: homeSpread,
