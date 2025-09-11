@@ -1,0 +1,621 @@
+/* Mobile Components CSS Module */
+/* Mobile-first responsive design with proper constraints */
+
+:root {
+  --mobile-max-width: 100vw;
+  --mobile-button-max-width: 200px;
+  --mobile-touch-target: 44px;
+  --mobile-spacing-xs: 4px;
+  --mobile-spacing-sm: 8px;
+  --mobile-spacing-md: 16px;
+  --mobile-spacing-lg: 24px;
+  --mobile-spacing-xl: 32px;
+  
+  /* Color variables for dark mode support */
+  --mobile-primary: #3b82f6;
+  --mobile-primary-hover: #2563eb;
+  --mobile-primary-active: #1d4ed8;
+  --mobile-secondary: #6b7280;
+  --mobile-secondary-hover: #4b5563;
+  --mobile-success: #10b981;
+  --mobile-success-hover: #059669;
+  --mobile-danger: #ef4444;
+  --mobile-danger-hover: #dc2626;
+  
+  --mobile-bg-primary: #ffffff;
+  --mobile-bg-secondary: #f9fafb;
+  --mobile-bg-tertiary: #f3f4f6;
+  --mobile-text-primary: #111827;
+  --mobile-text-secondary: #6b7280;
+  --mobile-text-inverse: #ffffff;
+  
+  --mobile-border: #d1d5db;
+  --mobile-border-focus: #3b82f6;
+  --mobile-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --mobile-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --mobile-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode color overrides */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --mobile-bg-primary: #111827;
+    --mobile-bg-secondary: #1f2937;
+    --mobile-bg-tertiary: #374151;
+    --mobile-text-primary: #f9fafb;
+    --mobile-text-secondary: #9ca3af;
+    --mobile-border: #4b5563;
+    --mobile-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --mobile-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    --mobile-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* =================================== */
+/* MOBILE BUTTON COMPONENT */
+/* =================================== */
+
+.mobileButton {
+  /* Constrained width - NO full-width on mobile */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--mobile-spacing-sm);
+  
+  /* Touch-friendly sizing */
+  min-height: var(--mobile-touch-target);
+  padding: 10px var(--mobile-spacing-md);
+  max-width: var(--mobile-button-max-width);
+  
+  /* Styling */
+  background: var(--mobile-primary);
+  color: var(--mobile-text-inverse);
+  border: 2px solid transparent;
+  border-radius: 8px;
+  
+  /* Typography */
+  font-size: 16px; /* Prevent zoom on iOS */
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  
+  /* Interaction */
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease-in-out;
+  
+  /* Accessibility */
+  outline: none;
+  box-shadow: var(--mobile-shadow-sm);
+}
+
+.mobileButton:hover {
+  background: var(--mobile-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--mobile-shadow-md);
+}
+
+.mobileButton:active,
+.mobileButton.pressed {
+  background: var(--mobile-primary-active);
+  transform: translateY(0);
+  box-shadow: var(--mobile-shadow-sm);
+}
+
+.mobileButton:focus-visible {
+  outline: 2px solid var(--mobile-border-focus);
+  outline-offset: 2px;
+}
+
+/* Button Variants */
+.button-secondary {
+  background: var(--mobile-secondary);
+  color: var(--mobile-text-inverse);
+}
+
+.button-secondary:hover {
+  background: var(--mobile-secondary-hover);
+}
+
+.button-success {
+  background: var(--mobile-success);
+}
+
+.button-success:hover {
+  background: var(--mobile-success-hover);
+}
+
+.button-danger {
+  background: var(--mobile-danger);
+}
+
+.button-danger:hover {
+  background: var(--mobile-danger-hover);
+}
+
+/* Button Sizes */
+.button-sm {
+  min-height: 36px;
+  padding: 6px var(--mobile-spacing-sm);
+  font-size: 14px;
+  max-width: 150px;
+}
+
+.button-md {
+  /* Default size - already defined above */
+}
+
+.button-lg {
+  min-height: 52px;
+  padding: 14px var(--mobile-spacing-lg);
+  font-size: 18px;
+  max-width: 250px;
+}
+
+/* Full width override (use sparingly) */
+.fullWidth {
+  max-width: 100%;
+  width: 100%;
+}
+
+/* Disabled state */
+.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Loading state */
+.loading {
+  cursor: wait;
+  pointer-events: none;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.hiddenText {
+  opacity: 0.7;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* =================================== */
+/* MOBILE GAME CARD COMPONENT */
+/* =================================== */
+
+.mobileGameCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mobile-spacing-sm);
+  
+  background: var(--mobile-bg-primary);
+  border: 1px solid var(--mobile-border);
+  border-radius: 12px;
+  padding: var(--mobile-spacing-md);
+  
+  box-shadow: var(--mobile-shadow-sm);
+  transition: all 0.2s ease-in-out;
+}
+
+.mobileGameCard:hover {
+  box-shadow: var(--mobile-shadow-md);
+}
+
+.compact {
+  padding: var(--mobile-spacing-sm);
+  gap: var(--mobile-spacing-xs);
+}
+
+.locked {
+  opacity: 0.7;
+  background: var(--mobile-bg-tertiary);
+}
+
+.gameHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--mobile-spacing-xs);
+}
+
+.gameTime {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--mobile-text-secondary);
+}
+
+.lockIndicator {
+  font-size: 14px;
+  filter: grayscale(1);
+}
+
+.teamContainer {
+  flex: 1;
+}
+
+.gameDetails {
+  display: flex;
+  gap: var(--mobile-spacing-md);
+  padding-top: var(--mobile-spacing-xs);
+  border-top: 1px solid var(--mobile-border);
+  font-size: 12px;
+  color: var(--mobile-text-secondary);
+}
+
+.spread,
+.overUnder {
+  font-weight: 500;
+}
+
+/* =================================== */
+/* MOBILE TEAM SELECTOR COMPONENT */
+/* =================================== */
+
+.teamSelector {
+  display: flex;
+  align-items: center;
+  gap: var(--mobile-spacing-sm);
+  width: 100%;
+}
+
+.teamButton {
+  display: flex;
+  align-items: center;
+  gap: var(--mobile-spacing-sm);
+  
+  /* Flexible sizing - no fixed max-width here */
+  flex: 1;
+  min-height: var(--mobile-touch-target);
+  padding: var(--mobile-spacing-sm);
+  
+  background: var(--mobile-bg-secondary);
+  border: 2px solid var(--mobile-border);
+  border-radius: 8px;
+  
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  position: relative;
+}
+
+.teamButton:hover {
+  background: var(--mobile-bg-tertiary);
+  border-color: var(--mobile-primary);
+}
+
+.teamButton.selected {
+  background: var(--mobile-primary);
+  border-color: var(--mobile-primary);
+  color: var(--mobile-text-inverse);
+}
+
+.teamButton.pressed {
+  transform: scale(0.98);
+}
+
+.teamButton.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.teamLogo {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.teamInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+  min-width: 0; /* Allow text truncation */
+}
+
+.teamAbbr {
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.teamName {
+  font-size: 11px;
+  opacity: 0.8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.teamSpread {
+  font-size: 10px;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.checkmark {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.vsIndicator {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--mobile-text-secondary);
+  flex-shrink: 0;
+  padding: 0 2px;
+}
+
+/* =================================== */
+/* MOBILE WEEK SELECTOR COMPONENT */
+/* =================================== */
+
+.weekSelector {
+  width: 100%;
+  overflow: hidden;
+}
+
+.weekScrollContainer {
+  display: flex;
+  gap: var(--mobile-spacing-sm);
+  overflow-x: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+  padding: var(--mobile-spacing-sm) 0;
+  scroll-behavior: smooth;
+}
+
+.weekScrollContainer::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+.weekButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  
+  /* Fixed sizing for horizontal scroll */
+  min-width: 80px;
+  height: var(--mobile-touch-target);
+  padding: var(--mobile-spacing-xs) var(--mobile-spacing-sm);
+  
+  background: var(--mobile-bg-secondary);
+  border: 2px solid var(--mobile-border);
+  border-radius: 8px;
+  
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  flex-shrink: 0;
+}
+
+.weekButton:hover {
+  background: var(--mobile-bg-tertiary);
+  border-color: var(--mobile-primary);
+}
+
+.weekButton.selected {
+  background: var(--mobile-primary);
+  border-color: var(--mobile-primary);
+  color: var(--mobile-text-inverse);
+}
+
+.weekButton.empty {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.weekNumber {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.gameCount {
+  font-size: 9px;
+  opacity: 0.8;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+/* =================================== */
+/* MOBILE NAVIGATION COMPONENT */
+/* =================================== */
+
+.mobileNavigation {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  
+  background: var(--mobile-bg-primary);
+  border-top: 1px solid var(--mobile-border);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  
+  /* Safe area for iPhones */
+  padding-bottom: env(safe-area-inset-bottom);
+  
+  z-index: 1000;
+}
+
+.navContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  max-width: 100vw;
+  margin: 0 auto;
+  padding: var(--mobile-spacing-xs) var(--mobile-spacing-sm);
+}
+
+.navButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  
+  min-width: var(--mobile-touch-target);
+  min-height: var(--mobile-touch-target);
+  padding: var(--mobile-spacing-xs);
+  
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  
+  color: var(--mobile-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  position: relative;
+}
+
+.navButton:hover,
+.navButton.active {
+  color: var(--mobile-primary);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.navButton:active {
+  transform: scale(0.95);
+}
+
+.navIcon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.navLabel {
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.navBadge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  
+  min-width: 16px;
+  height: 16px;
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  background: var(--mobile-danger);
+  color: white;
+  border-radius: 8px;
+  
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* =================================== */
+/* RESPONSIVE BREAKPOINTS */
+/* =================================== */
+
+/* Small mobile devices */
+@media (max-width: 374px) {
+  :root {
+    --mobile-button-max-width: 160px;
+    --mobile-spacing-md: 12px;
+    --mobile-spacing-lg: 20px;
+  }
+  
+  .teamName {
+    display: none; /* Hide on very small screens */
+  }
+  
+  .weekButton {
+    min-width: 70px;
+  }
+}
+
+/* Large mobile devices */
+@media (min-width: 375px) and (max-width: 767px) {
+  :root {
+    --mobile-button-max-width: 220px;
+  }
+}
+
+/* Tablet and up - adjust some constraints */
+@media (min-width: 768px) {
+  :root {
+    --mobile-button-max-width: 250px;
+  }
+  
+  .mobileGameCard {
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  
+  .weekScrollContainer {
+    justify-content: center;
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+  
+  .weekButton {
+    min-width: 100px;
+  }
+}
+
+/* Desktop - hide mobile navigation */
+@media (min-width: 1024px) {
+  .mobileNavigation {
+    display: none;
+  }
+}
+
+/* =================================== */
+/* ACCESSIBILITY ENHANCEMENTS */
+/* =================================== */
+
+/* Focus indicators for keyboard navigation */
+.mobileButton:focus-visible,
+.teamButton:focus-visible,
+.weekButton:focus-visible,
+.navButton:focus-visible {
+  outline: 2px solid var(--mobile-border-focus);
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .mobileButton,
+  .teamButton,
+  .weekButton {
+    border-width: 3px;
+  }
+  
+  .teamButton.selected,
+  .weekButton.selected {
+    border-color: currentColor;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

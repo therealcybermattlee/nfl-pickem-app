@@ -1,0 +1,10 @@
+
+<svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="700pt" height="700pt" viewBox="0 0 700 700">
+  <g transform="translate(0,700) scale(0.1,-0.1)" fill="#1f2937" stroke="none">
+    <path d="M0 3500 l0 -3500 3500 0 3500 0 0 3500 0 3500 -3500 0 -3500 0 0 -3500z"/>
+    <ellipse cx="350" cy="280" rx="80" ry="50" fill="#8B5A2B"/>
+    <line x1="300" y1="280" x2="400" y2="280" stroke="white" stroke-width="10"/>
+    <text x="350" y="180" text-anchor="middle" fill="white" font-family="Arial" font-weight="bold" font-size="120">NFL</text>
+    <text x="350" y="420" text-anchor="middle" fill="white" font-family="Arial" font-weight="bold" font-size="80">PICK'EM</text>
+  </g>
+</svg>

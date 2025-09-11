@@ -1,9 +1,12 @@
+/* Import accessibility styles */
+@import './styles/accessibility.css';
+
+/* Import mobile-specific styles */
+@import './styles/mobile.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import accessibility styles */
-@import './styles/accessibility.css';
 
 :root {
   --background: 0 0% 100%;
