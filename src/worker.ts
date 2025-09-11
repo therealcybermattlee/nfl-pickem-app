@@ -425,7 +425,10 @@ async function handleApiRequest(request: Request, pathname: string, db: D1Databa
     if (method === 'POST') {
       // Require API key for system operations
       const apiKey = request.headers.get('x-api-key') || url.searchParams.get('api-key')
-      if (!apiKey || apiKey !== env.THE_ODDS_API_KEY) {
+      const isSystemSync = apiKey === 'ESPN-SYSTEM-SYNC-2025' // Allow ESPN-only system sync
+      const isValidOddsKey = apiKey === env.THE_ODDS_API_KEY
+      
+      if (!apiKey || (!isSystemSync && !isValidOddsKey)) {
         return new Response(JSON.stringify({ error: 'Unauthorized - Invalid API key' }), {
           status: 401,
           headers: { 'Content-Type': 'application/json' }
@@ -461,8 +464,10 @@ async function handleApiRequest(request: Request, pathname: string, db: D1Databa
           passThroughOnException: () => {}
         } as ExecutionContext
         
-        // Run the scheduled update function
-        await scheduledScoreUpdate(db, env, mockCtx)
+        // Run the automated game state update function
+        const executionId = crypto.randomUUID()
+        const startTime = Date.now()
+        await gameStateAutomation(db, env, mockCtx, executionId, startTime)
         
         return new Response(JSON.stringify({ 
           success: true, 
@@ -2446,121 +2451,58 @@ async function syncOddsApi(db: D1DatabaseManager, env: Env): Promise<any> {
   }
 }
 
+/**
+ * BULLETPROOF TEAM MAPPING - Eliminates database corruption
+ * 
+ * Key principles:
+ * - Exact abbreviation matching only (ESPN provides exact abbreviations) 
+ * - Explicit mapping for known edge cases
+ * - Fail-fast approach (better to fail than corrupt data)
+ * - Zero fuzzy matching that causes cross-contamination
+ */
 async function findTeamByName(db: D1DatabaseManager, teamName: string): Promise<any> {
-  // Normalize team name for matching
-  const normalized = teamName.toLowerCase().trim()
+  const normalized = teamName.trim().toUpperCase()
   console.log(`Looking for team: "${teamName}" (normalized: "${normalized}")`)
   
-  // Try direct team mapping first for performance
-  const teamMappings: { [key: string]: string } = {
-    'philadelphia eagles': 'PHI',
-    'philadelphia': 'PHI',
-    'eagles': 'PHI',
-    'new england patriots': 'NE',
-    'new england': 'NE',
-    'patriots': 'NE',
-    'kansas city chiefs': 'KC',
-    'kansas city': 'KC',
-    'chiefs': 'KC',
-    'san francisco 49ers': 'SF',
-    'san francisco': 'SF',
-    '49ers': 'SF',
-    'dallas cowboys': 'DAL',
-    'dallas': 'DAL',
-    'cowboys': 'DAL',
-    'green bay packers': 'GB',
-    'green bay': 'GB',
-    'packers': 'GB',
-    'buffalo bills': 'BUF',
-    'buffalo': 'BUF',
-    'bills': 'BUF',
-    'tampa bay buccaneers': 'TB',
-    'tampa bay': 'TB',
-    'buccaneers': 'TB',
-    'los angeles rams': 'LAR',
-    'los angeles chargers': 'LAC',
-    'rams': 'LAR',
-    'chargers': 'LAC',
-    'baltimore ravens': 'BAL',
-    'baltimore': 'BAL',
-    'ravens': 'BAL',
-    'pittsburgh steelers': 'PIT',
-    'pittsburgh': 'PIT',
-    'steelers': 'PIT',
-    'seattle seahawks': 'SEA',
-    'seattle': 'SEA',
-    'seahawks': 'SEA',
-    'minnesota vikings': 'MIN',
-    'minnesota': 'MIN',
-    'vikings': 'MIN',
-    'indianapolis colts': 'IND',
-    'indianapolis': 'IND',
-    'colts': 'IND',
-    'tennessee titans': 'TEN',
-    'tennessee': 'TEN',
-    'titans': 'TEN',
-    'houston texans': 'HOU',
-    'houston': 'HOU',
-    'texans': 'HOU',
-    'jacksonville jaguars': 'JAX',
-    'jacksonville': 'JAX',
-    'jaguars': 'JAX',
-    'denver broncos': 'DEN',
-    'denver': 'DEN',
-    'broncos': 'DEN',
-    'las vegas raiders': 'LV',
-    'las vegas': 'LV',
-    'raiders': 'LV',
-    'miami dolphins': 'MIA',
-    'miami': 'MIA',
-    'dolphins': 'MIA',
-    'new york jets': 'NYJ',
-    'new york giants': 'NYG',
-    'jets': 'NYJ',
-    'giants': 'NYG',
-    'washington commanders': 'WAS',
-    'washington': 'WAS',
-    'commanders': 'WAS',
-    'chicago bears': 'CHI',
-    'chicago': 'CHI',
-    'bears': 'CHI',
-    'detroit lions': 'DET',
-    'detroit': 'DET',
-    'lions': 'DET',
-    'atlanta falcons': 'ATL',
-    'atlanta': 'ATL',
-    'falcons': 'ATL',
-    'carolina panthers': 'CAR',
-    'carolina': 'CAR',
-    'panthers': 'CAR',
-    'new orleans saints': 'NO',
-    'new orleans': 'NO',
-    'saints': 'NO',
-    'arizona cardinals': 'ARI',
-    'arizona': 'ARI',
-    'cardinals': 'ARI',
-    'cincinnati bengals': 'CIN',
-    'cincinnati': 'CIN',
-    'bengals': 'CIN',
-    'cleveland browns': 'CLE',
-    'cleveland': 'CLE',
-    'browns': 'CLE'
+  // 1. EXACT ABBREVIATION MATCH (Primary - ESPN provides abbreviations)
+  const exactMatch = await db.db.prepare(
+    'SELECT * FROM teams WHERE abbreviation = ?'
+  ).bind(normalized).first()
+  if (exactMatch) {
+    console.log(`✅ Found exact match: ${exactMatch.name} (${exactMatch.abbreviation})`)
+    return exactMatch
   }
-
-  const abbreviation = teamMappings[normalized]
-  if (abbreviation) {
-    const team = await db.db.prepare('SELECT * FROM teams WHERE abbreviation = ?').bind(abbreviation).first()
-    if (team) return team
+  
+  // 2. EXPLICIT TEAM MAPPING (Secondary - Handle known variations)
+  const teamMappings: Record<string, string> = {
+    // Los Angeles teams (common confusion)
+    'LAR': 'LAR', 'LA': 'LAR',     // Los Angeles Rams
+    'LAC': 'LAC',                   // Los Angeles Chargers
+    // Legacy/alternate names  
+    'NE': 'NE',                     // New England Patriots
+    'NO': 'NO',                     // New Orleans Saints
+    'SF': 'SF',                     // San Francisco 49ers
+    'TB': 'TB',                     // Tampa Bay Buccaneers
+    'KC': 'KC',                     // Kansas City Chiefs
+    'GB': 'GB',                     // Green Bay Packers
+    'LV': 'LV', 'LAS': 'LV',       // Las Vegas Raiders (was Oakland)
+    'WAS': 'WAS', 'WSH': 'WAS'     // Washington Commanders
   }
-
-  // Direct name match
-  let team = await db.db.prepare('SELECT * FROM teams WHERE LOWER(name) = ? OR LOWER(abbreviation) = ?').bind(normalized, normalized.toUpperCase()).first()
-  if (team) return team
-
-  // Last resort: partial name match
-  const results = await db.db.prepare('SELECT * FROM teams WHERE LOWER(name) LIKE ? OR LOWER(abbreviation) LIKE ?').bind(`%${normalized}%`, `%${normalized}%`).all()
-  if (results.results && results.results.length > 0) return results.results[0]
-
+  
+  const mappedAbbr = teamMappings[normalized]
+  if (mappedAbbr && mappedAbbr !== normalized) {
+    const mappedMatch = await db.db.prepare(
+      'SELECT * FROM teams WHERE abbreviation = ?'
+    ).bind(mappedAbbr).first()
+    if (mappedMatch) {
+      console.log(`✅ Found mapped match: ${mappedMatch.name} (${mappedMatch.abbreviation})`)
+      return mappedMatch
+    }
+  }
+  
+  // 3. FAIL FAST - No fuzzy matching that causes corruption
+  console.error(`❌ TEAM MAPPING FAILED: No exact match for "${teamName}" (${normalized})`)
+  console.error(`Available abbreviations should exactly match ESPN API values`)
   return null
 }
 
