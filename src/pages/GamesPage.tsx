@@ -7,25 +7,13 @@ import { GameLockStatus } from '../components/GameLockStatus';
 import type { Game, GameStatus } from '../types/api';
 import type { RealTimeEvent } from '../types/events';
 
-// Get auth token from localStorage
-const getAuthToken = (): string | undefined => {
-  try {
-    const user = localStorage.getItem('user');
-    return user ? JSON.parse(user).token : undefined;
-  } catch {
-    return undefined;
-  }
-};
-
-// Get current user ID
-const getCurrentUserId = (): number | undefined => {
-  try {
-    const user = localStorage.getItem('user');
-    return user ? JSON.parse(user).id : undefined;
-  } catch {
-    return undefined;
-  }
-};
+// Define available users (same as HomePage)
+const USERS = [
+  { id: 'dad-user-id', name: 'Dad' },
+  { id: 'mom-user-id', name: 'Mom' },
+  { id: 'twobow-user-id', name: 'TwoBow' },
+  { id: 'rocky-user-id', name: 'RockyDaRock' }
+];
 
 export function GamesPage() {
   const [games, setGames] = useState<GameStatus[]>([]);
@@ -37,9 +25,10 @@ export function GamesPage() {
   const [viewMode, setViewMode] = useState<'list' | 'compact'>('list');
   const [lockOffsetMinutes] = useState(0); // Can be made configurable
   const [isAutoPickEnabled] = useState(true); // Can be made configurable
+  const [selectedUser, setSelectedUser] = useState<string>(''); // User selector
 
-  const authToken = getAuthToken();
-  const currentUserId = getCurrentUserId();
+  const authToken = undefined; // No authentication needed
+  const currentUserId = selectedUser || undefined; // Use selected user
 
   // Real-time updates integration
   const realTimeUpdates = useRealTimeUpdates({
@@ -93,31 +82,38 @@ export function GamesPage() {
 
   // Fetch user picks for the current week
   const fetchUserPicks = useCallback(async () => {
-    if (!currentUserId || !authToken) return;
+    if (!currentUserId) return;
     
     try {
-      const response = await ApiClient.getUserPicks(currentUserId, week, season, authToken);
+      // Fetch all picks and filter by user
+      const response = await ApiClient.get('/api/picks');
       if (response.success && response.data) {
-        const picksMap = new Map(response.data.map(pick => [pick.gameId, pick.teamId]));
+        const allPicks = response.data.picks || [];
+        const weekGames = games.map(g => g.id);
+        const userPicksForWeek = allPicks.filter(
+          pick => pick.userId === currentUserId && weekGames.includes(pick.gameId)
+        );
+        const picksMap = new Map(userPicksForWeek.map(pick => [pick.gameId, pick.teamId]));
         setUserPicks(picksMap);
       }
     } catch (err) {
       console.error('Failed to fetch user picks:', err);
     }
-  }, [currentUserId, authToken, week, season]);
+  }, [currentUserId, games]);
 
   // Handle pick submission
   const handlePickSubmit = useCallback(async (gameId: string, teamId: string) => {
-    if (!currentUserId || !authToken) {
-      setError('Please log in to submit picks');
+    if (!currentUserId) {
+      setError('Please select a user to submit picks');
       return;
     }
 
     try {
       const response = await ApiClient.submitPick({
         gameId,
-        teamId
-      }, authToken);
+        teamId,
+        userId: currentUserId
+      }, '');
       
       if (response.success) {
         setUserPicks(prev => new Map(prev).set(gameId, teamId));
@@ -129,7 +125,7 @@ export function GamesPage() {
     } catch (err) {
       setError('Failed to submit pick');
     }
-  }, [currentUserId, authToken, week, season]);
+  }, [currentUserId]);
 
   // Handle real-time events
   useEffect(() => {
@@ -169,8 +165,11 @@ export function GamesPage() {
 
   useEffect(() => {
     fetchGames();
+  }, [fetchGames]);
+
+  useEffect(() => {
     fetchUserPicks();
-  }, [fetchGames, fetchUserPicks]);
+  }, [fetchUserPicks, selectedUser]);
 
   // Loading skeleton for mobile-first design
   if (loading) {
@@ -250,6 +249,21 @@ export function GamesPage() {
           </div>
           
           <div className="flex items-center space-x-4">
+            {/* User selector */}
+            <div className="flex items-center space-x-2">
+              <label className="text-sm font-medium">User:</label>
+              <select 
+                value={selectedUser} 
+                onChange={(e) => setSelectedUser(e.target.value)}
+                className="px-3 py-2 border rounded-lg bg-white text-sm sm:text-base"
+              >
+                <option value="">Select user...</option>
+                {USERS.map(user => (
+                  <option key={user.id} value={user.id}>{user.name}</option>
+                ))}
+              </select>
+            </div>
+
             {/* Week selector */}
             <div className="flex items-center space-x-2">
               <label className="text-sm font-medium">Week:</label>
