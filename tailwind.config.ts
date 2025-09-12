@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  darkMode: ["class"],
+  darkMode: "media", // Use media query for better Safari compatibility
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -21,6 +21,10 @@ const config: Config = {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        // Safari-compatible RGB fallbacks
+        'safari-foreground': 'rgb(var(--foreground-rgb))',
+        'safari-background': 'rgb(var(--background-rgb))',
+        'safari-muted': 'rgb(var(--muted-foreground-rgb))',
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",

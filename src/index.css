@@ -4,11 +4,15 @@
 /* Import mobile-specific styles */
 @import './styles/mobile.css';
 
+/* Import Safari compatibility fixes */
+@import './styles/safari-compatibility.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
+  /* HSL values without hsl() wrapper for compatibility */
   --background: 0 0% 100%;
   --foreground: 222.2 84% 4.9%;
   --card: 0 0% 100%;
@@ -29,6 +33,13 @@
   --input: 214.3 31.8% 91.4%;
   --ring: 222.2 84% 4.9%;
   --radius: 0.5rem;
+
+  /* Safari-specific fallback colors (RGB values) */
+  --foreground-rgb: 20, 20, 20;
+  --background-rgb: 255, 255, 255;
+  --muted-foreground-rgb: 107, 114, 126;
+  --primary-rgb: 25, 25, 25;
+  --border-rgb: 229, 231, 235;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -52,6 +63,13 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
+
+    /* Safari-specific fallback colors for dark mode (RGB values) */
+    --foreground-rgb: 250, 250, 250;
+    --background-rgb: 15, 15, 15;
+    --muted-foreground-rgb: 161, 161, 170;
+    --primary-rgb: 250, 250, 250;
+    --border-rgb: 39, 39, 42;
   }
 }
 
@@ -60,9 +78,90 @@
 }
 
 body {
+  /* Safari-specific fixes for text rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  
+  /* Multi-layer color fallbacks for Safari compatibility */
+  color: rgb(var(--foreground-rgb, 20, 20, 20));
   color: hsl(var(--foreground));
+  background: rgb(var(--background-rgb, 255, 255, 255));
   background: hsl(var(--background));
+  
   font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* Safari-specific color fixes */
+@supports (-webkit-appearance: none) {
+  body {
+    /* Ensure proper color contrast in Safari */
+    color: rgb(var(--foreground-rgb));
+    background: rgb(var(--background-rgb));
+  }
+  
+  /* Fix text color inheritance issues in Safari */
+  h1, h2, h3, h4, h5, h6, p, span, div, a {
+    color: inherit;
+  }
+}
+
+/* Additional Safari WebKit fixes */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  body {
+    /* Force color recalculation in Safari */
+    color: rgb(var(--foreground-rgb));
+    background-color: rgb(var(--background-rgb));
+  }
+}
+
+/* Safari dark mode detection and fixes */
+@media screen and (-webkit-min-device-pixel-ratio: 0) and (prefers-color-scheme: dark) {
+  body {
+    /* Explicit dark mode colors for Safari */
+    color: rgb(250, 250, 250) !important;
+    background-color: rgb(15, 15, 15) !important;
+  }
+  
+  /* Ensure all text elements inherit proper colors */
+  h1, h2, h3, h4, h5, h6, p, span, div, a, button, input, textarea, select {
+    color: inherit;
+  }
+  
+  /* Fix muted text colors in Safari dark mode */
+  .text-gray-500, .text-gray-600, .text-muted-foreground {
+    color: rgb(161, 161, 170) !important;
+  }
+}
+
+/* Light mode explicit fixes for Safari */
+@media screen and (-webkit-min-device-pixel-ratio: 0) and (prefers-color-scheme: light) {
+  body {
+    /* Explicit light mode colors for Safari */
+    color: rgb(20, 20, 20) !important;
+    background-color: rgb(255, 255, 255) !important;
+  }
+  
+  /* Fix muted text colors in Safari light mode */
+  .text-gray-500, .text-gray-600, .text-muted-foreground {
+    color: rgb(107, 114, 126) !important;
+  }
+}
+
+/* Cross-browser color consistency fixes */
+.text-foreground {
+  color: rgb(var(--foreground-rgb));
+  color: hsl(var(--foreground));
+}
+
+.text-muted-foreground {
+  color: rgb(var(--muted-foreground-rgb));
+  color: hsl(var(--muted-foreground));
+}
+
+.bg-background {
+  background-color: rgb(var(--background-rgb));
+  background-color: hsl(var(--background));
 }
 
 @layer base {
@@ -84,5 +183,89 @@ body {
 
   p {
     @apply leading-7 [&:not(:first-child)]:mt-6;
+  }
+}
+
+/* Safari-specific Tailwind color utility fixes */
+@layer utilities {
+  @media screen and (-webkit-min-device-pixel-ratio: 0) {
+    /* Fix common Tailwind text colors in Safari */
+    .text-gray-900 {
+      color: rgb(17, 24, 39) !important;
+    }
+    
+    .text-gray-800 {
+      color: rgb(31, 41, 55) !important;
+    }
+    
+    .text-gray-700 {
+      color: rgb(55, 65, 81) !important;
+    }
+    
+    .text-gray-600 {
+      color: rgb(75, 85, 99) !important;
+    }
+    
+    .text-gray-500 {
+      color: rgb(107, 114, 126) !important;
+    }
+    
+    .text-gray-400 {
+      color: rgb(156, 163, 175) !important;
+    }
+    
+    /* Dark mode Tailwind fixes for Safari */
+    @media (prefers-color-scheme: dark) {
+      .text-gray-900 {
+        color: rgb(243, 244, 246) !important;
+      }
+      
+      .text-gray-800 {
+        color: rgb(229, 231, 235) !important;
+      }
+      
+      .text-gray-700 {
+        color: rgb(209, 213, 219) !important;
+      }
+      
+      .text-gray-600 {
+        color: rgb(156, 163, 175) !important;
+      }
+      
+      .text-gray-500 {
+        color: rgb(107, 114, 126) !important;
+      }
+      
+      .text-gray-400 {
+        color: rgb(75, 85, 99) !important;
+      }
+    }
+    
+    /* Blue text colors commonly used in the app */
+    .text-blue-600 {
+      color: rgb(37, 99, 235) !important;
+    }
+    
+    .text-blue-500 {
+      color: rgb(59, 130, 246) !important;
+    }
+    
+    /* Green text colors for success states */
+    .text-green-600 {
+      color: rgb(22, 163, 74) !important;
+    }
+    
+    .text-green-500 {
+      color: rgb(34, 197, 94) !important;
+    }
+    
+    /* Red text colors for error states */
+    .text-red-600 {
+      color: rgb(220, 38, 38) !important;
+    }
+    
+    .text-red-500 {
+      color: rgb(239, 68, 68) !important;
+    }
   }
 }

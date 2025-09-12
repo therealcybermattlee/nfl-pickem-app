@@ -23,6 +23,14 @@
 
 **RULE: If the task matches an agent's specialty, use the agent immediately. Don't attempt the work manually first.**
 
+### 🚨 NEVER TEST ON NON-PRODUCTION URLs 🚨
+**CRITICAL RULE - ABSOLUTE REQUIREMENT:**
+- **ALWAYS test fixes on the production site: https://pickem.leefamilysso.com**
+- **NEVER test on preview URLs like *.pages.dev - they have different CORS configurations**
+- **Preview URLs will mislead debugging and waste time**
+- **If production isn't updating, investigate why production isn't updating**
+- **Do not get sidetracked with preview deployments when production is the issue**
+
 ### 📋 Task Management
 - **ALWAYS use TodoWrite** for any multi-step or complex tasks
 - Track progress transparently for the user

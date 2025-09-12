@@ -19,13 +19,12 @@ interface GameCardProps {
 
 // Utility function to format odds for display
 const formatSpread = (spread: number, isHome: boolean = true): string => {
-  const points = Math.abs(spread) / 100;
-  const sign = spread > 0 ? '+' : '-';
-  return `${sign}${points.toFixed(1)}`;
+  const sign = spread > 0 ? '+' : '';
+  return `${sign}${spread.toFixed(1)}`;
 };
 
 const formatOverUnder = (overUnder: number): string => {
-  return (Math.abs(overUnder) / 100).toFixed(1);
+  return overUnder.toFixed(1);
 };
 
 export const GameCard: React.FC<GameCardProps> = ({
