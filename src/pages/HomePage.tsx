@@ -8,6 +8,7 @@ import {
   MobileQuickStats 
 } from '../components/mobile';
 import { useMobileViewport } from '../hooks/useMobileNavigation';
+import { GameCard } from '../components/GameCard';
 
 interface User {
   id: string;
@@ -333,109 +334,22 @@ export function HomePage() {
           ) : (
             <div className="grid gap-3 sm:gap-4">
               {games.map((game) => {
-                const gamePicks = getPicksForGame(game.id);
                 const userPick = selectedUser ? getUserPickForGame(game.id, selectedUser) : undefined;
-                const gameStarted = game.isCompleted;
                 
                 return (
-                  <div key={game.id} className="bg-muted/50 rounded-lg p-3 sm:p-4">
-                    {/* Mobile-first layout: Stack teams vertically on small screens */}
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-3">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-2 sm:space-y-0">
-                        {/* Away Team */}
-                        <div 
-                          className={`text-center p-2 sm:p-3 rounded cursor-pointer transition-colors ${
-                            userPick?.teamId === game.awayTeamId ? 'bg-green-100 border-2 border-green-500' : 
-                            selectedUser && !gameStarted ? 'hover:bg-blue-50 active:bg-blue-100' : ''
-                          }`}
-                          onClick={() => !gameStarted && selectedUser ? handlePickTeam(game.id, game.awayTeamId, game.awayTeam?.abbreviation || 'AWAY') : null}
-                        >
-                          <div className="font-semibold text-sm sm:text-base">
-                            {game.awayTeam?.abbreviation || `Team ${game.awayTeamId}`}
-                          </div>
-                          <div className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
-                            {game.awayTeam?.name}
-                          </div>
-                          <div className="text-xs text-muted-foreground sm:hidden">
-                            {game.awayTeam?.name?.split(' ').pop() || 'Away'}
-                          </div>
-                        </div>
-                        
-                        <div className="text-lg sm:text-2xl font-bold text-muted-foreground text-center">@</div>
-                        
-                        {/* Home Team */}
-                        <div 
-                          className={`text-center p-2 sm:p-3 rounded cursor-pointer transition-colors ${
-                            userPick?.teamId === game.homeTeamId ? 'bg-green-100 border-2 border-green-500' : 
-                            selectedUser && !gameStarted ? 'hover:bg-blue-50 active:bg-blue-100' : ''
-                          }`}
-                          onClick={() => !gameStarted && selectedUser ? handlePickTeam(game.id, game.homeTeamId, game.homeTeam?.abbreviation || 'HOME') : null}
-                        >
-                          <div className="font-semibold text-sm sm:text-base">
-                            {game.homeTeam?.abbreviation || `Team ${game.homeTeamId}`}
-                          </div>
-                          <div className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
-                            {game.homeTeam?.name}
-                          </div>
-                          <div className="text-xs text-muted-foreground sm:hidden">
-                            {game.homeTeam?.name?.split(' ').pop() || 'Home'}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="text-center sm:text-right">
-                        <div className="text-xs sm:text-sm text-muted-foreground mb-1">
-                          {new Date(game.gameDate).toLocaleDateString()}
-                        </div>
-                        <div className="text-xs text-muted-foreground font-medium">
-                          {game.isCompleted ? 'FINAL' : 'SCHEDULED'}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Game Info */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground mb-3">
-                      {game.homeSpread && (
-                        <div>
-                          Spread: {game.homeTeam?.abbreviation} {game.homeSpread > 0 ? `+${game.homeSpread}` : `${game.homeSpread}`}
-                        </div>
-                      )}
-                      {game.overUnder && (
-                        <div>
-                          O/U: {game.overUnder}
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* Current Picks Display */}
-                    {selectedUser && gamePicks.length > 0 && (
-                      <div className="border-t pt-3">
-                        <div className="text-xs sm:text-sm font-medium mb-2">Current Picks:</div>
-                        <div className="flex flex-wrap gap-1 sm:gap-2">
-                          {gamePicks.map((pick, index) => (
-                            <div key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
-                              {pick.userName}: {pick.teamAbbr}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Pick Status */}
-                    {selectedUser && (
-                      <div className="mt-3 p-2 bg-blue-50 rounded text-xs sm:text-sm">
-                        {userPick ? (
-                          <span className="text-green-600 font-medium">
-                            ✓ You picked: {userPick.teamAbbr}
-                          </span>
-                        ) : gameStarted ? (
-                          <span className="text-red-600">Game has started - no picks allowed</span>
-                        ) : (
-                          <span className="text-blue-600">Tap a team to make your pick</span>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                  <GameCard
+                    key={game.id}
+                    game={game}
+                    userHasPick={!!userPick}
+                    userPickTeamId={userPick?.teamId}
+                    onPickSubmit={(gid, tid) => {
+                      const homeId = game.homeTeam?.id || game.homeTeamId;
+                      const awayId = game.awayTeam?.id || game.awayTeamId;
+                      const abbr = tid === homeId ? game.homeTeam?.abbreviation : game.awayTeam?.abbreviation;
+                      handlePickTeam(gid, tid, abbr || '');
+                    }}
+                    compactMode={isMobile}
+                  />
                 );
               })}
             </div>
