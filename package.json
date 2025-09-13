@@ -60,7 +60,7 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.1",
     "tailwindcss-animate": "^1.0.7",
-    "zod": "^3.22.4"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250905.0",

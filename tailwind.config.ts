@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  darkMode: "media", // Use media query for better Safari compatibility
+  darkMode: "class", // Enable class-based dark mode for manual toggle
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -52,6 +52,24 @@ const config: Config = {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
+        },
+        brand: {
+          DEFAULT: "hsl(var(--brand))",
+          foreground: "hsl(var(--brand-foreground))",
+          surface: "hsl(var(--brand-surface))",
+          "surface-foreground": "hsl(var(--brand-surface-foreground))",
+        },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+          surface: "hsl(var(--success-surface))",
+          "surface-foreground": "hsl(var(--success-surface-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+          surface: "hsl(var(--warning-surface))",
+          "surface-foreground": "hsl(var(--warning-surface-foreground))",
         },
       },
       borderRadius: {

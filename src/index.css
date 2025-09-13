@@ -34,19 +34,43 @@
   --ring: 222.2 84% 4.9%;
   --radius: 0.5rem;
 
+  /* Semantic brand and interaction colors */
+  --brand: 215 100% 39%;
+  --brand-foreground: 210 40% 98%;
+  --brand-surface: 210 100% 97%;
+  --brand-surface-foreground: 215 100% 30%;
+  
+  /* Success colors */
+  --success: 142 71% 45%;
+  --success-foreground: 210 40% 98%;
+  --success-surface: 138 76% 96%;
+  --success-surface-foreground: 142 71% 35%;
+  
+  /* Warning colors */
+  --warning: 24 94% 50%;
+  --warning-foreground: 210 40% 98%;
+  --warning-surface: 32 100% 96%;
+  --warning-surface-foreground: 24 94% 40%;
+
   /* Safari-specific fallback colors (RGB values) */
   --foreground-rgb: 20, 20, 20;
   --background-rgb: 255, 255, 255;
   --muted-foreground-rgb: 107, 114, 126;
   --primary-rgb: 25, 25, 25;
   --border-rgb: 229, 231, 235;
+  --brand-rgb: 30, 100, 200;
+  --brand-surface-rgb: 237, 245, 255;
+  --success-rgb: 34, 197, 94;
+  --success-surface-rgb: 240, 253, 244;
+  --warning-rgb: 251, 146, 60;
+  --warning-surface-rgb: 255, 251, 235;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --card: 222 63% 7%;
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
@@ -64,13 +88,87 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
 
+    /* Dark mode semantic colors */
+    --brand: 215 92% 77%;
+    --brand-foreground: 215 15% 15%;
+    --brand-surface: 215 45% 22%;
+    --brand-surface-foreground: 215 92% 85%;
+    
+    --success: 142 70% 72%;
+    --success-foreground: 142 30% 15%;
+    --success-surface: 140 30% 20%;
+    --success-surface-foreground: 142 70% 80%;
+    
+    --warning: 32 100% 75%;
+    --warning-foreground: 28 15% 15%;
+    --warning-surface: 28 35% 20%;
+    --warning-surface-foreground: 32 100% 80%;
+
     /* Safari-specific fallback colors for dark mode (RGB values) */
     --foreground-rgb: 250, 250, 250;
     --background-rgb: 15, 15, 15;
     --muted-foreground-rgb: 161, 161, 170;
     --primary-rgb: 250, 250, 250;
     --border-rgb: 39, 39, 42;
+    --brand-rgb: 147, 197, 253;
+    --brand-surface-rgb: 30, 58, 138;
+    --success-rgb: 134, 239, 172;
+    --success-surface-rgb: 20, 83, 45;
+    --warning-rgb: 253, 186, 116;
+    --warning-surface-rgb: 120, 53, 15;
   }
+}
+
+/* Manual theme override capability */
+html[data-theme="dark"] {
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+  --card: 222 63% 7%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222.2 84% 4.9%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 210 40% 98%;
+  --primary-foreground: 222.2 47.4% 11.2%;
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --ring: 212.7 26.8% 83.9%;
+
+  /* Dark mode semantic colors */
+  --brand: 215 92% 77%;
+  --brand-foreground: 215 15% 15%;
+  --brand-surface: 215 45% 22%;
+  --brand-surface-foreground: 215 92% 85%;
+  
+  --success: 142 70% 72%;
+  --success-foreground: 142 30% 15%;
+  --success-surface: 140 30% 20%;
+  --success-surface-foreground: 142 70% 80%;
+  
+  --warning: 32 100% 75%;
+  --warning-foreground: 28 15% 15%;
+  --warning-surface: 28 35% 20%;
+  --warning-surface-foreground: 32 100% 80%;
+
+  /* Safari-specific fallback colors for dark mode (RGB values) */
+  --foreground-rgb: 250, 250, 250;
+  --background-rgb: 15, 15, 15;
+  --muted-foreground-rgb: 161, 161, 170;
+  --primary-rgb: 250, 250, 250;
+  --border-rgb: 39, 39, 42;
+  --brand-rgb: 147, 197, 253;
+  --brand-surface-rgb: 30, 58, 138;
+  --success-rgb: 134, 239, 172;
+  --success-surface-rgb: 20, 83, 45;
+  --warning-rgb: 253, 186, 116;
+  --warning-surface-rgb: 120, 53, 15;
 }
 
 * {

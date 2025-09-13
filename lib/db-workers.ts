@@ -357,6 +357,7 @@ export class D1DatabaseManager {
     totalPicks: number
     correctPicks: number
     percentage: number
+    lastWeekPoints: number
   }[]> {
     let query = `
       SELECT 
@@ -365,7 +366,8 @@ export class D1DatabaseManager {
         COUNT(p.id) as totalPicks,
         SUM(CASE WHEN p.isCorrect = 1 THEN 1 ELSE 0 END) as correctPicks,
         SUM(p.points) as totalPoints,
-        ROUND((SUM(CASE WHEN p.isCorrect = 1 THEN 1 ELSE 0 END) * 100.0 / COUNT(p.id)), 2) as percentage
+        ROUND((SUM(CASE WHEN p.isCorrect = 1 THEN 1 ELSE 0 END) * 100.0 / COUNT(p.id)), 2) as percentage,
+        SUM(p.points) as lastWeekPoints
       FROM users u
       LEFT JOIN picks p ON u.id = p.userId
       LEFT JOIN games g ON p.gameId = g.id
@@ -392,7 +394,8 @@ export class D1DatabaseManager {
       totalPoints: Number(row.totalPoints) || 0,
       totalPicks: Number(row.totalPicks) || 0,
       correctPicks: Number(row.correctPicks) || 0,
-      percentage: Number(row.percentage) || 0
+      percentage: Number(row.percentage) || 0,
+      lastWeekPoints: Number(row.lastWeekPoints) || 0
     }))
   }
 }

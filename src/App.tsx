@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Navigation } from './components/Navigation';
-import { ErrorBoundary, AccessibilityProvider, SkipNav } from './components';
+import { ErrorBoundary, AccessibilityProvider, SkipNav, ThemeProvider } from './components';
 import { MobileNavigationSystem } from './components/mobile';
 import { useMobileViewport } from './hooks/useMobileNavigation';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
@@ -26,9 +26,10 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <AccessibilityProvider>
-        <div className="min-h-screen bg-gray-50">
-          <SkipNav />
+      <ThemeProvider>
+        <AccessibilityProvider>
+          <div className="min-h-screen bg-background text-foreground">
+            <SkipNav />
           
           {/* PWA Install Prompt and Status */}
           <PWAInstallPrompt />
@@ -60,7 +61,8 @@ function App() {
             </ErrorBoundary>
           </main>
         </div>
-      </AccessibilityProvider>
+        </AccessibilityProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }

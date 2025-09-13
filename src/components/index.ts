@@ -26,6 +26,10 @@ export {
   AccessibleCountdown
 } from './AccessibilityHelpers';
 
+// Theme system
+export { ThemeProvider, useThemeContext } from './ThemeProvider';
+export { ThemeToggle, CompactThemeToggle } from './ThemeToggle';
+
 // Mobile-first UI components
 export {
   MobileButton,

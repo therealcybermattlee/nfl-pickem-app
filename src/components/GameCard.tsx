@@ -54,7 +54,7 @@ export const GameCard: React.FC<GameCardProps> = ({
       <div className={`
         ${compactMode ? 'w-12 h-12' : 'w-16 h-16'} 
         bg-primary/10 rounded-full flex items-center justify-center mb-2 overflow-hidden
-        ${userPickTeamId === team?.id ? 'ring-2 ring-blue-500 bg-blue-50' : ''}
+        ${userPickTeamId === team?.id ? 'ring-2 ring-brand bg-brand-surface' : ''}
       `}>
         {team?.logo ? (
           <img 
@@ -94,7 +94,7 @@ export const GameCard: React.FC<GameCardProps> = ({
       {/* Pick indicator */}
       {userPickTeamId === team?.id && (
         <div className="mt-1">
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-brand-surface text-brand-surface-foreground">
             <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -116,8 +116,8 @@ export const GameCard: React.FC<GameCardProps> = ({
           className={`
             px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 touch-manipulation
             ${userPickTeamId === game.awayTeam.id
-              ? 'bg-blue-500 text-white shadow-md'
-              : 'bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-700 active:scale-95'
+              ? 'bg-brand text-brand-foreground shadow-md'
+              : 'bg-secondary text-secondary-foreground hover:bg-brand-surface hover:text-brand-surface-foreground active:scale-95'
             }
           `}
         >
@@ -129,8 +129,8 @@ export const GameCard: React.FC<GameCardProps> = ({
           className={`
             px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 touch-manipulation
             ${userPickTeamId === game.homeTeam.id
-              ? 'bg-blue-500 text-white shadow-md'
-              : 'bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-700 active:scale-95'
+              ? 'bg-brand text-brand-foreground shadow-md'
+              : 'bg-secondary text-secondary-foreground hover:bg-brand-surface hover:text-brand-surface-foreground active:scale-95'
             }
           `}
         >
@@ -142,7 +142,7 @@ export const GameCard: React.FC<GameCardProps> = ({
 
   return (
     <div className={`
-      bg-white rounded-lg border shadow-sm hover:shadow-md transition-all duration-200
+      bg-card rounded-lg border shadow-sm hover:shadow-md transition-all duration-200
       ${compactMode ? 'p-4' : 'p-6'}
       ${className}
     `}>
@@ -153,7 +153,7 @@ export const GameCard: React.FC<GameCardProps> = ({
             Game #{game.id} • Week {game.week}
           </div>
           {!compactMode && (
-            <div className="text-sm font-medium text-gray-700">
+            <div className="text-sm font-medium text-foreground">
               {formatGameDate(game.gameDate, true)}
             </div>
           )}
@@ -197,7 +197,7 @@ export const GameCard: React.FC<GameCardProps> = ({
 
       {/* Betting lines */}
       {(game.homeSpread || game.overUnder) && !compactMode && (
-        <div className="flex justify-center space-x-4 mb-4 text-sm text-gray-600">
+        <div className="flex justify-center space-x-4 mb-4 text-sm text-muted-foreground">
           {game.homeSpread && (
             <div>
               {game.homeTeam?.abbreviation} {formatSpread(game.homeSpread)}
@@ -228,9 +228,9 @@ export const GameCard: React.FC<GameCardProps> = ({
 
       {/* Pick status for locked/completed games */}
       {(gameStatus === 'locked' || gameStatus === 'inProgress' || gameStatus === 'final') && userHasPick && (
-        <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
+        <div className="mt-4 p-3 bg-success-surface rounded-lg border border-success">
           <div className="flex items-center justify-between">
-            <div className="flex items-center text-green-700">
+            <div className="flex items-center text-success-surface-foreground">
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -241,7 +241,7 @@ export const GameCard: React.FC<GameCardProps> = ({
             {onViewPick && (
               <button
                 onClick={() => onViewPick(game.id)}
-                className="text-green-600 text-sm hover:text-green-800 transition-colors"
+                className="text-success text-sm hover:text-success-surface-foreground transition-colors"
               >
                 View
               </button>
@@ -252,8 +252,8 @@ export const GameCard: React.FC<GameCardProps> = ({
 
       {/* Auto-pick indicator */}
       {gameStatus === 'locked' && !userHasPick && isAutoPickEnabled && (
-        <div className="mt-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
-          <div className="flex items-center text-orange-700">
+        <div className="mt-4 p-3 bg-warning-surface rounded-lg border border-warning">
+          <div className="flex items-center text-warning-surface-foreground">
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
