@@ -408,7 +408,7 @@ export function HomePage() {
                     </div>
                     
                     {/* Current Picks Display */}
-                    {gamePicks.length > 0 && (
+                    {selectedUser && gamePicks.length > 0 && (
                       <div className="border-t pt-3">
                         <div className="text-xs sm:text-sm font-medium mb-2">Current Picks:</div>
                         <div className="flex flex-wrap gap-1 sm:gap-2">
