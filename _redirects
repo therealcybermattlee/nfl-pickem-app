@@ -1,6 +1,0 @@
-# NextAuth.js API routes
-/api/auth/* /.vercel/output/functions/api/auth/[...nextauth].func/:splat 200
-/api/* /.vercel/output/functions/api/* 200
-
-# SPA fallback for client-side routing
-/* /index.html 200
