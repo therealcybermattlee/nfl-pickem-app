@@ -384,16 +384,27 @@ async function handleApiRequest(request: Request, pathname: string, db: D1Databa
     if (method === 'GET') {
       const week = url.searchParams.get('week')
       const season = url.searchParams.get('season')
-      
+      const requestedWeek = week ? parseInt(week) : 1
+      const requestedSeason = season ? parseInt(season) : 2025
+
       const leaderboardData = await db.getLeaderboard(
         week ? parseInt(week) : undefined,
         season ? parseInt(season) : undefined
       )
-      
+
+      // Get actual completed games count for the requested week/season
+      const completedGamesResult = await db.db.prepare(`
+        SELECT COUNT(*) as count
+        FROM games
+        WHERE week = ? AND season = ? AND isCompleted = 1
+      `).bind(requestedWeek, requestedSeason).first()
+
+      const actualCompletedGames = completedGamesResult?.count || 0
+
       // Transform to match TypeScript Leaderboard interface
       const structuredResponse = {
-        week: week ? parseInt(week) : 1,
-        season: season ? parseInt(season) : 2025,
+        week: requestedWeek,
+        season: requestedSeason,
         entries: Array.isArray(leaderboardData) ? leaderboardData.map((row: any, index: number) => ({
           user: {
             id: row.userId || row.id || index + 1,
@@ -410,7 +421,7 @@ async function handleApiRequest(request: Request, pathname: string, db: D1Databa
           lastWeekPoints: row.lastWeekPoints || 0
         })) : [],
         totalGames: 16,
-        completedGames: 2
+        completedGames: actualCompletedGames
       }
       
       return new Response(JSON.stringify(structuredResponse), {
