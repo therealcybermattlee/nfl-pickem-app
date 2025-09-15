@@ -353,49 +353,101 @@ export class D1DatabaseManager {
   async getLeaderboard(week?: number, season?: number): Promise<{
     userId: string
     userName: string
-    totalPoints: number
+    weeklyPoints: number
+    totalSeasonPoints: number
+    weeklyPicks: number
     totalPicks: number
-    correctPicks: number
-    percentage: number
-    lastWeekPoints: number
+    weeklyCorrect: number
+    totalCorrect: number
+    weeklyPercentage: number
+    seasonPercentage: number
+    streak: number
   }[]> {
-    let query = `
-      SELECT 
+    // First get the season stats for all users
+    const seasonQuery = `
+      SELECT
         u.id as userId,
         u.name as userName,
         COUNT(p.id) as totalPicks,
-        SUM(CASE WHEN p.isCorrect = 1 THEN 1 ELSE 0 END) as correctPicks,
-        SUM(p.points) as totalPoints,
-        ROUND((SUM(CASE WHEN p.isCorrect = 1 THEN 1 ELSE 0 END) * 100.0 / COUNT(p.id)), 2) as percentage,
-        SUM(p.points) as lastWeekPoints
+        SUM(CASE WHEN p.isCorrect = 1 THEN 1 ELSE 0 END) as totalCorrect,
+        SUM(p.points) as totalSeasonPoints,
+        ROUND((SUM(CASE WHEN p.isCorrect = 1 THEN 1 ELSE 0 END) * 100.0 / COUNT(p.id)), 2) as seasonPercentage
       FROM users u
       LEFT JOIN picks p ON u.id = p.userId
       LEFT JOIN games g ON p.gameId = g.id
-      WHERE p.id IS NOT NULL
-    `
-    
-    const params: any[] = []
-    
-    if (week && season) {
-      query += ' AND g.week = ? AND g.season = ?'
-      params.push(week, season)
-    }
-    
-    query += `
+      WHERE p.id IS NOT NULL AND g.season = ?
       GROUP BY u.id, u.name
-      ORDER BY totalPoints DESC, percentage DESC
     `
 
-    const results = await this.db.prepare(query).bind(...params).all()
+    const seasonResults = await this.db.prepare(seasonQuery).bind(season || 2025).all()
+    const seasonData = new Map(seasonResults.results.map((row: any) => [row.userId, row]))
 
-    return results.results.map(row => ({
-      userId: row.userId,
-      userName: row.userName || 'Unknown',
-      totalPoints: Number(row.totalPoints) || 0,
-      totalPicks: Number(row.totalPicks) || 0,
-      correctPicks: Number(row.correctPicks) || 0,
-      percentage: Number(row.percentage) || 0,
-      lastWeekPoints: Number(row.lastWeekPoints) || 0
-    }))
+    // Now get weekly stats if a specific week is requested
+    if (week && season) {
+      const weeklyQuery = `
+        SELECT
+          u.id as userId,
+          u.name as userName,
+          COUNT(p.id) as weeklyPicks,
+          SUM(CASE WHEN p.isCorrect = 1 THEN 1 ELSE 0 END) as weeklyCorrect,
+          SUM(p.points) as weeklyPoints,
+          ROUND((SUM(CASE WHEN p.isCorrect = 1 THEN 1 ELSE 0 END) * 100.0 / COUNT(p.id)), 2) as weeklyPercentage
+        FROM users u
+        LEFT JOIN picks p ON u.id = p.userId
+        LEFT JOIN games g ON p.gameId = g.id
+        WHERE p.id IS NOT NULL AND g.week = ? AND g.season = ?
+        GROUP BY u.id, u.name
+      `
+
+      const weeklyResults = await this.db.prepare(weeklyQuery).bind(week, season).all()
+      const weeklyData = new Map(weeklyResults.results.map((row: any) => [row.userId, row]))
+
+      // Combine weekly and season data
+      const combined = Array.from(seasonData.entries()).map(([userId, seasonRow]) => {
+        const weeklyRow = weeklyData.get(userId) || {
+          weeklyPicks: 0,
+          weeklyCorrect: 0,
+          weeklyPoints: 0,
+          weeklyPercentage: 0
+        }
+
+        return {
+          userId: seasonRow.userId,
+          userName: seasonRow.userName || 'Unknown',
+          weeklyPoints: Number(weeklyRow.weeklyPoints) || 0,
+          totalSeasonPoints: Number(seasonRow.totalSeasonPoints) || 0,
+          weeklyPicks: Number(weeklyRow.weeklyPicks) || 0,
+          totalPicks: Number(seasonRow.totalPicks) || 0,
+          weeklyCorrect: Number(weeklyRow.weeklyCorrect) || 0,
+          totalCorrect: Number(seasonRow.totalCorrect) || 0,
+          weeklyPercentage: Number(weeklyRow.weeklyPercentage) || 0,
+          seasonPercentage: Number(seasonRow.seasonPercentage) || 0,
+          streak: 0 // TODO: Calculate streak
+        }
+      })
+
+      // Sort by weekly points for week view, then by total points
+      return combined.sort((a, b) => {
+        if (b.weeklyPoints !== a.weeklyPoints) {
+          return b.weeklyPoints - a.weeklyPoints
+        }
+        return b.totalSeasonPoints - a.totalSeasonPoints
+      })
+    } else {
+      // Return season-only data
+      return Array.from(seasonData.values()).map((row: any) => ({
+        userId: row.userId,
+        userName: row.userName || 'Unknown',
+        weeklyPoints: 0,
+        totalSeasonPoints: Number(row.totalSeasonPoints) || 0,
+        weeklyPicks: 0,
+        totalPicks: Number(row.totalPicks) || 0,
+        weeklyCorrect: 0,
+        totalCorrect: Number(row.totalCorrect) || 0,
+        weeklyPercentage: 0,
+        seasonPercentage: Number(row.seasonPercentage) || 0,
+        streak: 0 // TODO: Calculate streak
+      })).sort((a, b) => b.totalSeasonPoints - a.totalSeasonPoints)
+    }
   }
 }

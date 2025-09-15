@@ -413,12 +413,18 @@ async function handleApiRequest(request: Request, pathname: string, db: D1Databa
             displayName: row.userName || row.name || `User ${index + 1}`
           },
           position: index + 1,
-          points: row.totalPoints || row.points || row.correctPicks || 0,
+          // Use weekly points when viewing a specific week, season points for season view
+          points: week ? (row.weeklyPoints || 0) : (row.totalSeasonPoints || 0),
+          weeklyPoints: row.weeklyPoints || 0,
+          totalSeasonPoints: row.totalSeasonPoints || 0,
           totalPicks: row.totalPicks || 0,
+          weeklyPicks: row.weeklyPicks || 0,
           totalGames: row.totalGames || 16,
-          winPercentage: row.percentage || row.winPercentage || 0,
+          winPercentage: week ? (row.weeklyPercentage || 0) : (row.seasonPercentage || 0),
+          weeklyPercentage: row.weeklyPercentage || 0,
+          seasonPercentage: row.seasonPercentage || 0,
           streak: row.streak || 0,
-          lastWeekPoints: row.lastWeekPoints || 0
+          lastWeekPoints: row.weeklyPoints || 0
         })) : [],
         totalGames: 16,
         completedGames: actualCompletedGames

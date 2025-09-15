@@ -60,12 +60,17 @@ export interface User {
 export interface LeaderboardEntry {
   user: User;
   position: number;
-  points: number;
-  totalPicks: number;
+  points: number; // Primary points display (weekly for week view, season for season view)
+  weeklyPoints?: number; // Points earned in the selected week only
+  totalSeasonPoints?: number; // Total points accumulated across all weeks
+  totalPicks: number; // Total picks made (season)
+  weeklyPicks?: number; // Picks made in the selected week
   totalGames: number;
-  winPercentage: number;
+  winPercentage: number; // Primary percentage (weekly for week view, season for season view)
+  weeklyPercentage?: number; // Win percentage for the selected week only
+  seasonPercentage?: number; // Win percentage for the entire season
   streak?: number;
-  lastWeekPoints?: number;
+  lastWeekPoints?: number; // Legacy field - use weeklyPoints instead
 }
 
 export interface Leaderboard {
