@@ -368,10 +368,13 @@ export class D1DatabaseManager {
       SELECT
         u.id as userId,
         u.name as userName,
-        COUNT(p.id) as totalPicks,
-        SUM(CASE WHEN p.isCorrect = 1 THEN 1 ELSE 0 END) as totalCorrect,
-        SUM(p.points) as totalSeasonPoints,
-        ROUND((SUM(CASE WHEN p.isCorrect = 1 THEN 1 ELSE 0 END) * 100.0 / COUNT(p.id)), 2) as seasonPercentage
+        COUNT(CASE WHEN g.isCompleted = 1 THEN p.id END) as totalPicks,
+        SUM(CASE WHEN g.isCompleted = 1 AND p.isCorrect = 1 THEN 1 ELSE 0 END) as totalCorrect,
+        SUM(CASE WHEN g.isCompleted = 1 AND p.isCorrect = 1 THEN p.points ELSE 0 END) as totalSeasonPoints,
+        CASE 
+          WHEN COUNT(CASE WHEN g.isCompleted = 1 THEN p.id END) = 0 THEN 0
+          ELSE ROUND((SUM(CASE WHEN g.isCompleted = 1 AND p.isCorrect = 1 THEN 1 ELSE 0 END) * 100.0 / COUNT(CASE WHEN g.isCompleted = 1 THEN p.id END)), 2)
+        END as seasonPercentage
       FROM users u
       LEFT JOIN picks p ON u.id = p.userId
       LEFT JOIN games g ON p.gameId = g.id
@@ -388,10 +391,13 @@ export class D1DatabaseManager {
         SELECT
           u.id as userId,
           u.name as userName,
-          COUNT(p.id) as weeklyPicks,
-          SUM(CASE WHEN p.isCorrect = 1 THEN 1 ELSE 0 END) as weeklyCorrect,
-          SUM(p.points) as weeklyPoints,
-          ROUND((SUM(CASE WHEN p.isCorrect = 1 THEN 1 ELSE 0 END) * 100.0 / COUNT(p.id)), 2) as weeklyPercentage
+          COUNT(CASE WHEN g.isCompleted = 1 THEN p.id END) as weeklyPicks,
+          SUM(CASE WHEN g.isCompleted = 1 AND p.isCorrect = 1 THEN 1 ELSE 0 END) as weeklyCorrect,
+          SUM(CASE WHEN g.isCompleted = 1 AND p.isCorrect = 1 THEN p.points ELSE 0 END) as weeklyPoints,
+          CASE 
+            WHEN COUNT(CASE WHEN g.isCompleted = 1 THEN p.id END) = 0 THEN 0
+            ELSE ROUND((SUM(CASE WHEN g.isCompleted = 1 AND p.isCorrect = 1 THEN 1 ELSE 0 END) * 100.0 / COUNT(CASE WHEN g.isCompleted = 1 THEN p.id END)), 2)
+          END as weeklyPercentage
         FROM users u
         LEFT JOIN picks p ON u.id = p.userId
         LEFT JOIN games g ON p.gameId = g.id

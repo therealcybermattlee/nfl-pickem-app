@@ -2368,9 +2368,9 @@ async function syncOddsApi(db: D1DatabaseManager, env: Env): Promise<any> {
 
   console.log(`ESPN API: ${espnGames.length} games, Odds API: ${oddsGames.length} games`)
 
-  // Clear existing games for entire season to sync all games
-  await db.db.prepare('DELETE FROM games WHERE season = ?').bind(season).run()
-  console.log(`Cleared existing games for season ${season}`)
+  // DO NOT DELETE EXISTING GAMES - this would cascade delete all picks!
+  // Instead, we'll update existing games and insert new ones
+  console.log(`Syncing games for season ${season} (preserving existing picks)`)
 
   let gamesInserted = 0
   const weekCounts: { [key: number]: number } = {}
@@ -2426,9 +2426,10 @@ async function syncOddsApi(db: D1DatabaseManager, env: Env): Promise<any> {
       const gameTime = new Date(espnGame.gameDate)
       const lockTime = new Date(gameTime.getTime() - (15 * 60 * 1000)) // 15 minutes before kickoff
       
-      // Insert using remote database schema with correct team IDs and lockTime
+      // UPSERT: Insert new games or update existing ones (preserves picks!)
+      // Use INSERT OR REPLACE to update game data without deleting picks
       await db.db.prepare(`
-        INSERT INTO games (
+        INSERT OR REPLACE INTO games (
           id, espnId, week, season, homeTeamId, awayTeamId, gameDate, lockTime,
           status, isCompleted, homeScore, awayScore, homeSpread, overUnder,
           oddsProvider, oddsUpdatedAt
