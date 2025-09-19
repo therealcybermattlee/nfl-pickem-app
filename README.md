@@ -18,7 +18,7 @@ A modern web application for managing NFL pick'em pools where users can make wee
 - **Backend**: Next.js API Routes, Prisma ORM
 - **Database**: PostgreSQL
 - **Authentication**: NextAuth.js
-- **Deployment**: Vercel
+- **Deployment**: Cloudflare Pages + Workers
 - **External APIs**: ESPN/NFL Data API
 
 ## Getting Started
