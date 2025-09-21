@@ -101,7 +101,7 @@ For production deployment:
 1. Set up PostgreSQL database
 2. Configure environment variables
 3. Run migrations: `npm run db:migrate`
-4. Deploy to Vercel/Netlify/other platform
+4. Deploy to Cloudflare Pages + Workers
 
 ## 🐛 Common Issues
 
