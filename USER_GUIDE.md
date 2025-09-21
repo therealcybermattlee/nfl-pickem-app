@@ -2,12 +2,12 @@
 
 **Welcome to the Family NFL Pick'em Competition!**
 
-Your NFL Pick'em app is live at: **https://pickem.leefamilysso.com**
+Your NFL Pick'em app is live at: **https://pickem.cyberlees.dev**
 
 ## 🏈 Getting Started
 
 ### First Time Setup:
-1. **Visit the App**: Go to https://pickem.leefamilysso.com
+1. **Visit the App**: Go to https://pickem.cyberlees.dev
 2. **Create Your Account**: Click "Sign Up" and register with your email
 3. **Login**: Use your email and password to access the app
 4. **Start Making Picks**: Navigate to games and make your weekly selections
@@ -122,7 +122,7 @@ If you want to test the app first:
 - Check your email and password spelling
 - Try the "Forgot Password" feature if available
 - Clear your browser cache and try again
-- Make sure you're at the correct URL: https://pickem.leefamilysso.com
+- Make sure you're at the correct URL: https://pickem.cyberlees.dev
 
 #### Pick Not Saving:
 - Make sure you have internet connection
@@ -183,4 +183,4 @@ If you run into issues that these tips don't solve, contact Matt with:
 
 Remember, this is about family fun and friendly competition. The app handles all the technical details so you can focus on enjoying NFL Sundays together. Good luck with your picks!
 
-**Ready to Start?** Visit https://pickem.leefamilysso.com and create your account!
+**Ready to Start?** Visit https://pickem.cyberlees.dev and create your account!

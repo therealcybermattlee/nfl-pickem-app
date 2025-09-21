@@ -7,7 +7,7 @@ This guide covers operational procedures for maintaining the NFL Pick'em app in 
 ## 🔧 Production Environment
 
 ### Infrastructure Overview:
-- **Frontend**: Cloudflare Pages (https://pickem.leefamilysso.com)
+- **Frontend**: Cloudflare Pages (https://pickem.cyberlees.dev)
 - **API**: Cloudflare Workers (https://nfl-pickem-app-production.cybermattlee-llc.workers.dev)
 - **Database**: Cloudflare D1 (nfl-pickem-db)
 - **CDN**: Global Cloudflare edge network
@@ -19,7 +19,7 @@ This guide covers operational procedures for maintaining the NFL Pick'em app in 
 
 #### Frontend Health:
 ```bash
-curl https://pickem.leefamilysso.com/health
+curl https://pickem.cyberlees.dev/health
 # Expected: 200 OK with app status
 ```
 
@@ -301,7 +301,7 @@ npm run workers:deploy
 git push origin main  # Triggers Cloudflare Pages deployment
 
 # 4. Verify deployment
-curl https://pickem.leefamilysso.com/health
+curl https://pickem.cyberlees.dev/health
 curl https://nfl-pickem-app-production.cybermattlee-llc.workers.dev/api/health
 ```
 

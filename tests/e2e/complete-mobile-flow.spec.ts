@@ -20,7 +20,7 @@ const MOBILE_VIEWPORTS = [
 ]
 
 const PRODUCTION_API = 'https://nfl-pickem-app-production.cybermattlee-llc.workers.dev'
-const PRODUCTION_SITE = 'https://pickem.leefamilysso.com'
+const PRODUCTION_SITE = 'https://pickem.cyberlees.dev'
 
 test.describe('Complete Mobile Flow - Game Day Experience', () => {
   MOBILE_VIEWPORTS.forEach(viewport => {

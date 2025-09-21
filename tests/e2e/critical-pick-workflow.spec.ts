@@ -18,7 +18,7 @@ import { test, expect } from '@playwright/test'
  */
 
 test.describe('CRITICAL: Issue #1 Pick Workflow Validation', () => {
-  const PRODUCTION_URL = 'https://pickem.leefamilysso.com'
+  const PRODUCTION_URL = 'https://pickem.cyberlees.dev'
   const PRODUCTION_API = 'https://nfl-pickem-app-production.cybermattlee-llc.workers.dev'
   const TEST_EMAIL = 'test@example.com'
   const TEST_PASSWORD = 'password123'

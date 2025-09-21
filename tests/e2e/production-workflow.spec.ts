@@ -9,12 +9,12 @@ import { test, expect } from '@playwright/test'
  * Per CLAUDE.md: "NEVER call any feature 'operational', 'working', 'deployed', or 'ready' 
  * without confirming it through end-user testing with Playwright."
  * 
- * Production URL: https://pickem.leefamilysso.com
+ * Production URL: https://pickem.cyberlees.dev
  * Production API: https://nfl-pickem-app-production.cybermattlee-llc.workers.dev
  * Test User: test@example.com / password123
  */
 test.describe('PRODUCTION: Complete Pick Submission Workflow', () => {
-  const PRODUCTION_URL = 'https://pickem.leefamilysso.com'
+  const PRODUCTION_URL = 'https://pickem.cyberlees.dev'
   const PRODUCTION_API = 'https://nfl-pickem-app-production.cybermattlee-llc.workers.dev'
   const TEST_EMAIL = 'test@example.com'
   const TEST_PASSWORD = 'password123'

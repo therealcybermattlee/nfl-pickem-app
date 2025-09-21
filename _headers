@@ -6,6 +6,6 @@
 
 # Enable CORS for API routes
 /api/*
-  Access-Control-Allow-Origin: https://pickem.leefamilysso.com
+  Access-Control-Allow-Origin: https://pickem.cyberlees.dev
   Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
   Access-Control-Allow-Headers: Content-Type, Authorization

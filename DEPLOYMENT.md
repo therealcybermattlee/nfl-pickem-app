@@ -94,13 +94,13 @@ yarn run workers:deploy
 ### 5.3 Configure Custom Domain
 ```bash
 # Add custom domain to Worker
-npx wrangler subdomain add pickem.leefamilysso.com
+npx wrangler subdomain add pickem.cyberlees.dev
 ```
 
 ## Step 6: Verification
 
 ### 6.1 Test Access
-1. Navigate to https://pickem.leefamilysso.com
+1. Navigate to https://pickem.cyberlees.dev
 2. Verify Cloudflare Access authentication works
 3. Test application functionality
 
@@ -114,7 +114,7 @@ npx wrangler subdomain add pickem.leefamilysso.com
 ### 7.1 Update OAuth Redirect URIs
 If using Microsoft OAuth, update redirect URIs:
 - Development: `http://localhost:3000/api/auth/callback/microsoft`
-- Production: `https://pickem.leefamilysso.com/api/auth/callback/microsoft`
+- Production: `https://pickem.cyberlees.dev/api/auth/callback/microsoft`
 
 ### 7.2 Configure Monitoring
 Set up Cloudflare Analytics and error tracking:

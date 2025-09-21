@@ -40,7 +40,7 @@
 
 ## Current Deployment
 
-**Frontend (Cloudflare Pages):** https://pickem.leefamilysso.com  
+**Frontend (Cloudflare Pages):** https://pickem.cyberlees.dev  
 **API (Cloudflare Workers):** https://nfl-pickem-app-production.cybermattlee-llc.workers.dev
 
 ## Immediate Focus - Skip Authentication Complexity

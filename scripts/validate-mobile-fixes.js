@@ -18,7 +18,7 @@ const MOBILE_VIEWPORTS = [
   { name: 'iPhone SE', width: 375, height: 667 }
 ]
 
-const PRODUCTION_SITE = 'https://pickem.leefamilysso.com'
+const PRODUCTION_SITE = 'https://pickem.cyberlees.dev'
 
 async function validateMobileFixes() {
   console.log('🚀 NFL Pick\'em PWA - Critical Mobile Validation')

@@ -1,7 +1,7 @@
 import { test, expect, Page } from '@playwright/test';
 
 test.describe('Time-Lock System Performance Tests', () => {
-  const PRODUCTION_URL = 'https://pickem.leefamilysso.com';
+  const PRODUCTION_URL = 'https://pickem.cyberlees.dev';
   const API_URL = 'https://nfl-pickem-app-production.cybermattlee-llc.workers.dev';
 
   test.beforeEach(async ({ page }) => {

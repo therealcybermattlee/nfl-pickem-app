@@ -12,7 +12,7 @@ import { test, expect } from '@playwright/test'
  * - Touch vs mouse interaction consistency
  */
 
-const PRODUCTION_SITE = 'https://pickem.leefamilysso.com'
+const PRODUCTION_SITE = 'https://pickem.cyberlees.dev'
 const PRODUCTION_API = 'https://nfl-pickem-app-production.cybermattlee-llc.workers.dev'
 
 const DEVICE_MATRIX = [

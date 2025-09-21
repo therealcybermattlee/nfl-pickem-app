@@ -8,8 +8,8 @@ async function testProduction() {
   
   try {
     // Test 1: Site loads
-    console.log('📡 Loading https://pickem.leefamilysso.com...');
-    await page.goto('https://pickem.leefamilysso.com', { timeout: 10000 });
+    console.log('📡 Loading https://pickem.cyberlees.dev...');
+    await page.goto('https://pickem.cyberlees.dev', { timeout: 10000 });
     
     // Test 2: Title check
     const title = await page.title();

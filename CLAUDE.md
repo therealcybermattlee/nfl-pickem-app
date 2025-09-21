@@ -25,7 +25,7 @@
 
 ### 🚨 NEVER TEST ON NON-PRODUCTION URLs 🚨
 **CRITICAL RULE - ABSOLUTE REQUIREMENT:**
-- **ALWAYS test fixes on the production site: https://pickem.leefamilysso.com**
+- **ALWAYS test fixes on the production site: https://pickem.cyberlees.dev**
 - **NEVER test on preview URLs like *.pages.dev - they have different CORS configurations**
 - **Preview URLs will mislead debugging and waste time**
 - **If production isn't updating, investigate why production isn't updating**
@@ -56,7 +56,7 @@
 ## 🎉 PRODUCTION LAUNCH COMPLETE (September 2025)
 
 ### Live Production Environment:
-- **Production Site**: https://pickem.leefamilysso.com ✅
+- **Production Site**: https://pickem.cyberlees.dev ✅
 - **API Endpoint**: https://nfl-pickem-app-production.cybermattlee-llc.workers.dev ✅
 - **Database**: Cloudflare D1 with time-lock system active ✅
 - **Monitoring**: Automated cron jobs running every 15 minutes ✅
@@ -212,7 +212,7 @@ npm run test:load      # Run load testing for performance
 npm run test:security  # Run security vulnerability testing
 
 # Monitor production
-curl https://pickem.leefamilysso.com/health    # Check frontend health
+curl https://pickem.cyberlees.dev/health    # Check frontend health
 curl https://nfl-pickem-app-production.cybermattlee-llc.workers.dev/api/health  # Check API health
 
 # Production data sync
@@ -345,7 +345,7 @@ Configuration files:
 - ✓ **Clean code structure** maintainable and extensible
 
 ### Production Launch Success:
-- ✓ **Live Production Environment** at https://pickem.leefamilysso.com
+- ✓ **Live Production Environment** at https://pickem.cyberlees.dev
 - ✓ **Time-Lock System Operational** with real-time countdown timers
 - ✓ **Automated Scoring** with 15-minute cron job updates
 - ✓ **Performance Tested** for 100+ concurrent users
@@ -358,7 +358,7 @@ Configuration files:
 **Status:** FULLY OPERATIONAL - Family NFL Pick'em App serving users in production
 
 **Production Deployment:**
-- **Live Site**: https://pickem.leefamilysso.com ✅
+- **Live Site**: https://pickem.cyberlees.dev ✅
 - **API**: https://nfl-pickem-app-production.cybermattlee-llc.workers.dev ✅
 - **Database**: Cloudflare D1 with time-lock constraints ✅
 - **Automation**: Cron jobs running every 15 minutes ✅
@@ -397,7 +397,7 @@ Configuration files:
 
 **Production URLs:**
 - **Workers API:** `https://nfl-pickem-app-production.cybermattlee-llc.workers.dev`
-- **Custom Domain:** `https://pickem.leefamilysso.com` (configured in wrangler.toml)
+- **Custom Domain:** `https://pickem.cyberlees.dev` (configured in wrangler.toml)
 
 ### CRITICAL ESPN API LEARNINGS - MUST READ! 
 

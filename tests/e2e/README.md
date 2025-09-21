@@ -84,7 +84,7 @@ This comprehensive Playwright testing framework validates all features of the NF
 
 ### Environment Configuration
 - **Local Development**: `http://localhost:5173` (frontend), `http://localhost:8787` (API)
-- **Production Testing**: `https://pickem.leefamilysso.com`
+- **Production Testing**: `https://pickem.cyberlees.dev`
 - **Parallel Execution**: Supports running multiple browsers simultaneously
 - **Retries**: 2 retries on CI, 0 retries locally
 
@@ -114,7 +114,7 @@ npm run test:e2e:ui
 npx playwright test --project="Mobile Chrome"
 
 # Run against production
-PLAYWRIGHT_BASE_URL=https://pickem.leefamilysso.com npx playwright test
+PLAYWRIGHT_BASE_URL=https://pickem.cyberlees.dev npx playwright test
 ```
 
 ### Debug Mode

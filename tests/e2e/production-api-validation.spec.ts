@@ -9,7 +9,7 @@ import { test, expect } from '@playwright/test'
 
 test.describe('Production API Validation', () => {
   const PRODUCTION_API = 'https://nfl-pickem-app-production.cybermattlee-llc.workers.dev'
-  const PRODUCTION_URL = 'https://pickem.leefamilysso.com'
+  const PRODUCTION_URL = 'https://pickem.cyberlees.dev'
 
   test('Validate all production APIs are accessible and functional', async ({ request, page }) => {
     console.log('🎯 PRODUCTION API VALIDATION STARTED')

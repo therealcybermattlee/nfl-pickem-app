@@ -22,7 +22,7 @@ PARALLEL=${3:-"true"}        # true or false
 BROWSER=${4:-"all"}          # chromium, webkit, firefox, or all
 
 # Test suite configuration
-PRODUCTION_SITE="https://pickem.leefamilysso.com"
+PRODUCTION_SITE="https://pickem.cyberlees.dev"
 LOCAL_SITE="http://localhost:3000"
 RESULTS_DIR="./test-results/$(date +%Y%m%d_%H%M%S)"
 REPORT_DIR="./playwright-report"

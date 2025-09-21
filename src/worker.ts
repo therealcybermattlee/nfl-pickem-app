@@ -10,7 +10,7 @@ import {
 
 // CORS headers - restrict to known domains
 const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://pickem.leefamilysso.com',
+  'Access-Control-Allow-Origin': 'https://pickem.cyberlees.dev',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   'Access-Control-Allow-Credentials': 'true',

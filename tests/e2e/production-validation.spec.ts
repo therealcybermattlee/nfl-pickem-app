@@ -12,7 +12,7 @@ import { test, expect } from '@playwright/test'
  */
 
 const PRODUCTION_API = 'https://nfl-pickem-app-production.cybermattlee-llc.workers.dev'
-const PRODUCTION_SITE = 'https://pickem.leefamilysso.com'
+const PRODUCTION_SITE = 'https://pickem.cyberlees.dev'
 
 const NETWORK_CONDITIONS = [
   { name: 'Fast 3G', downloadThroughput: 1.5 * 1024, uploadThroughput: 750, latency: 40 },

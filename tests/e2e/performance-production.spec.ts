@@ -13,7 +13,7 @@ import { test, expect } from '@playwright/test'
  * - Network efficiency validation
  */
 
-const PRODUCTION_SITE = 'https://pickem.leefamilysso.com'
+const PRODUCTION_SITE = 'https://pickem.cyberlees.dev'
 const PRODUCTION_API = 'https://nfl-pickem-app-production.cybermattlee-llc.workers.dev'
 
 const PERFORMANCE_THRESHOLDS = {

@@ -3,7 +3,7 @@ import { playAudit } from 'playwright-lighthouse';
 
 test.describe('Frontend Performance Tests', () => {
   let page: Page;
-  const PRODUCTION_URL = 'https://pickem.leefamilysso.com';
+  const PRODUCTION_URL = 'https://pickem.cyberlees.dev';
   const DEV_URL = 'http://localhost:3000';
   
   // Use production URL for performance testing

@@ -194,7 +194,7 @@ function generateSummaryReport(results) {
   let report = `# NFL Pick'em Performance Test Report
   
 **Test Run:** ${results.timestamp}
-**Environment:** Production (https://pickem.leefamilysso.com)
+**Environment:** Production (https://pickem.cyberlees.dev)
 
 ## Test Summary
 

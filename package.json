@@ -45,7 +45,7 @@
     "perf:stress": "npx artillery run tests/performance/game-day-stress-test.yml",
     "perf:frontend": "npx playwright test tests/performance/frontend-performance.spec.ts",
     "perf:timelock": "npx playwright test tests/performance/time-lock-performance.spec.ts",
-    "prod:health": "echo 'Testing Frontend:' && curl -s -o /dev/null -w 'Frontend Status: %{http_code}\\n' https://pickem.leefamilysso.com && echo 'Testing API:' && curl -s https://nfl-pickem-app-production.cybermattlee-llc.workers.dev/api/teams | head -1",
+    "prod:health": "echo 'Testing Frontend:' && curl -s -o /dev/null -w 'Frontend Status: %{http_code}\\n' https://pickem.cyberlees.dev && echo 'Testing API:' && curl -s https://nfl-pickem-app-production.cybermattlee-llc.workers.dev/api/teams | head -1",
     "prod:sync": "curl -X POST https://nfl-pickem-app-production.cybermattlee-llc.workers.dev/api/odds/sync",
     "prod:deploy": "npm run build && npm run workers:deploy && npm run prod:health",
     "prod:monitor": "echo 'Production Monitoring:' && npm run prod:health && echo 'Database Status:' && wrangler d1 execute nfl-pickem-db --remote --command=\"SELECT COUNT(*) as users FROM users; SELECT COUNT(*) as games FROM games WHERE season = 2025; SELECT COUNT(*) as picks FROM picks;\"",

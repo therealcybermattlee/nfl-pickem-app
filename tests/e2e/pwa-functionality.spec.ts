@@ -13,7 +13,7 @@ import { test, expect } from '@playwright/test'
  * - App manifest and home screen behavior
  */
 
-const PRODUCTION_SITE = 'https://pickem.leefamilysso.com'
+const PRODUCTION_SITE = 'https://pickem.cyberlees.dev'
 const PWA_MANIFEST_URL = `${PRODUCTION_SITE}/manifest.json`
 
 test.describe('PWA Functionality Validation', () => {

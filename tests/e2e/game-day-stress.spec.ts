@@ -12,7 +12,7 @@ import { test, expect } from '@playwright/test'
  * - Sunday 1PM kickoff rush scenarios
  */
 
-const PRODUCTION_SITE = 'https://pickem.leefamilysso.com'
+const PRODUCTION_SITE = 'https://pickem.cyberlees.dev'
 const PRODUCTION_API = 'https://nfl-pickem-app-production.cybermattlee-llc.workers.dev'
 
 const GAME_DAY_SCENARIOS = [

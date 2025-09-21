@@ -2,7 +2,7 @@
 
 **Status**: FULLY OPERATIONAL AND READY FOR NFL SEASON 🏈  
 **Launch Date**: September 2025  
-**Production URL**: https://pickem.leefamilysso.com
+**Production URL**: https://pickem.cyberlees.dev
 
 ## 🏆 Launch Summary
 
@@ -30,7 +30,7 @@ npm run prod:logs        # View production logs
 ## 🚀 Production Environment Status
 
 ### Live System Health:
-- **Frontend**: https://pickem.leefamilysso.com ✅ (200 OK)
+- **Frontend**: https://pickem.cyberlees.dev ✅ (200 OK)
 - **API**: https://nfl-pickem-app-production.cybermattlee-llc.workers.dev ✅ (Operational)
 - **Database**: Cloudflare D1 with 168 games, 5 users, 9 picks ✅
 - **CDN**: Global Cloudflare edge distribution ✅
@@ -161,7 +161,7 @@ The NFL Pick'em App is now **FULLY OPERATIONAL** and ready to serve the family t
 - Production-ready monitoring and operations procedures
 
 ### What The Family Gets:
-- **Easy Access**: https://pickem.leefamilysso.com
+- **Easy Access**: https://pickem.cyberlees.dev
 - **Fair Competition**: Automated deadline enforcement
 - **Real-Time Updates**: Live scoring throughout game day
 - **Mobile Ready**: Perfect for game-day mobile access
@@ -180,7 +180,7 @@ The NFL Pick'em App is now **FULLY OPERATIONAL** and ready to serve the family t
 
 **The NFL Pick'em App is officially LIVE and ready for the 2025 NFL season!**
 
-Family members can now visit https://pickem.leefamilysso.com to:
+Family members can now visit https://pickem.cyberlees.dev to:
 1. Create their accounts
 2. Start making weekly NFL picks
 3. Compete in the family leaderboard

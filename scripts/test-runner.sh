@@ -15,7 +15,7 @@ NC='\033[0m' # No Color
 # Configuration
 FRONTEND_URL="http://localhost:5173"
 API_URL="http://localhost:8787"
-PROD_URL="https://pickem.leefamilysso.com"
+PROD_URL="https://pickem.cyberlees.dev"
 
 echo -e "${BLUE}🏈 NFL Pick'em E2E Test Runner${NC}"
 echo -e "${BLUE}=================================${NC}"

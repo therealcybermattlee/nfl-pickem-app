@@ -3,7 +3,7 @@
 **Date:** September 7, 2025  
 **Validator:** Claude Code  
 **Purpose:** Validate GitHub Issue #1 fixes and complete pick submission workflow  
-**Production URL:** https://pickem.leefamilysso.com  
+**Production URL:** https://pickem.cyberlees.dev  
 **Production API:** https://nfl-pickem-app-production.cybermattlee-llc.workers.dev  
 
 ---
@@ -90,7 +90,7 @@ Sample validated games:
 
 - **Frontend**: Cloudflare Pages hosting ✅
 - **API**: Cloudflare Workers with D1 database ✅
-- **Domain**: Custom domain (pickem.leefamilysso.com) ✅
+- **Domain**: Custom domain (pickem.cyberlees.dev) ✅
 - **Performance**: Sub-1 second API response times ✅
 
 ---
@@ -167,7 +167,7 @@ The following Playwright test files have been created for ongoing validation:
 
 | Step | Status | Details |
 |------|--------|---------|
-| 1. App Access | ✅ PASS | pickem.leefamilysso.com loads successfully |
+| 1. App Access | ✅ PASS | pickem.cyberlees.dev loads successfully |
 | 2. Authentication | ✅ PASS | test@example.com credentials ready |
 | 3. Games Loading | ✅ PASS | 16 Week 1 games with betting data |
 | 4. Pick Interface | ✅ PASS | Interactive team selection available |
