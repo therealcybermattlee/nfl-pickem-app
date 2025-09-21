@@ -50,8 +50,23 @@
 
 **Current State:** FULLY OPERATIONAL - Production environment ready for NFL game day
 
-**Last Updated:** September 2025  
+**Last Updated:** September 21, 2025
 **Development Phase:** PRODUCTION LAUNCHED - Live application serving users
+
+## 🔄 RECENT MAJOR UPDATES (September 21, 2025)
+
+### ✅ Domain Migration Complete
+- **Migration**: Successfully moved from `pickem.leefamilysso.com` → `pickem.cyberlees.dev`
+- **Zero Downtime**: All data preserved, no interruption to user experience
+- **Comprehensive Update**: 32+ files updated across entire codebase
+- **CORS Fixed**: Workers API updated to allow new domain
+- **Testing Verified**: Full functionality confirmed on new domain
+
+### ✅ Production Fixes Applied
+- **Time-Lock Validation**: Fixed pick submission error for locked games
+- **Leaderboard Scoring**: Fixed to only count actually completed games
+- **Vercel Cleanup**: Removed all traces and references (Cloudflare-only now)
+- **Infrastructure**: Streamlined deployment configuration
 
 ## 🎉 PRODUCTION LAUNCH COMPLETE (September 2025)
 
