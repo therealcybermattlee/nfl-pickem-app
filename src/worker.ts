@@ -2426,32 +2426,62 @@ async function syncOddsApi(db: D1DatabaseManager, env: Env): Promise<any> {
       const gameTime = new Date(espnGame.gameDate)
       const lockTime = new Date(gameTime.getTime() - (15 * 60 * 1000)) // 15 minutes before kickoff
       
-      // UPSERT: Insert new games or update existing ones (preserves picks!)
-      // Use INSERT OR REPLACE to update game data without deleting picks
-      await db.db.prepare(`
-        INSERT OR REPLACE INTO games (
-          id, espnId, week, season, homeTeamId, awayTeamId, gameDate, lockTime,
-          status, isCompleted, homeScore, awayScore, homeSpread, overUnder,
-          oddsProvider, oddsUpdatedAt
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      // CRITICAL FIX: Use proper UPDATE/INSERT logic to preserve existing picks!
+      // INSERT OR REPLACE deletes existing games which cascades to delete picks!
+      const gameId = espnGame.id || crypto.randomUUID()
+
+      // First, try to UPDATE existing game
+      const updateResult = await db.db.prepare(`
+        UPDATE games
+        SET espnId = ?, week = ?, season = ?, homeTeamId = ?, awayTeamId = ?,
+            gameDate = ?, lockTime = ?, isCompleted = ?, homeScore = ?, awayScore = ?,
+            homeSpread = ?, overUnder = ?, oddsProvider = ?, oddsUpdatedAt = ?
+        WHERE id = ?
       `).bind(
-        espnGame.id || crypto.randomUUID(),
-        espnGame.id, // ESPN ID for reference
+        espnGame.id,
         calculatedWeek,
         season,
-        homeTeam.id, // Use team UUID, not abbreviation
-        awayTeam.id, // Use team UUID, not abbreviation
+        homeTeam.id,
+        awayTeam.id,
         espnGame.gameDate,
-        lockTime.toISOString(), // Lock time for picks
-        'upcoming', // Default status for new games
+        lockTime.toISOString(),
         espnGame.status === 'FINAL' || espnGame.status === 'COMPLETED',
         espnGame.homeScore,
         espnGame.awayScore,
-        homeSpread ? homeSpread / 100 : null, // Convert from cents to decimal
-        overUnder ? overUnder / 100 : null,   // Convert from cents to decimal
+        homeSpread ? homeSpread / 100 : null,
+        overUnder ? overUnder / 100 : null,
         oddsProvider,
-        new Date().toISOString()
+        new Date().toISOString(),
+        gameId
       ).run()
+
+      // If UPDATE didn't affect any rows, INSERT new game
+      if (updateResult.changes === 0) {
+        await db.db.prepare(`
+          INSERT INTO games (
+            id, espnId, week, season, homeTeamId, awayTeamId, gameDate, lockTime,
+            status, isCompleted, homeScore, awayScore, homeSpread, overUnder,
+            oddsProvider, oddsUpdatedAt
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(
+          gameId,
+          espnGame.id,
+          calculatedWeek,
+          season,
+          homeTeam.id,
+          awayTeam.id,
+          espnGame.gameDate,
+          lockTime.toISOString(),
+          'upcoming',
+          espnGame.status === 'FINAL' || espnGame.status === 'COMPLETED',
+          espnGame.homeScore,
+          espnGame.awayScore,
+          homeSpread ? homeSpread / 100 : null,
+          overUnder ? overUnder / 100 : null,
+          oddsProvider,
+          new Date().toISOString()
+        ).run()
+      }
 
       gamesInserted++
       console.log(`Inserted: ${awayTeam.abbreviation} @ ${homeTeam.abbreviation} (Week ${calculatedWeek}) ${espnGame.status}`)
