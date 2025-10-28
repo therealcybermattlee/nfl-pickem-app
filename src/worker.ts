@@ -589,6 +589,57 @@ async function handleApiRequest(request: Request, pathname: string, db: D1Databa
     }
   }
 
+  // Database migration endpoint (for fixing schema)
+  if (pathname === '/api/system/migrate') {
+    if (method === 'POST') {
+      const apiKey = request.headers.get('x-api-key') || url.searchParams.get('api-key')
+      if (apiKey !== 'ESPN-SYSTEM-SYNC-2025') {
+        return new Response(JSON.stringify({ error: 'Unauthorized - Invalid API key' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      }
+
+      try {
+        console.log('Running database migration for picks table...')
+
+        // Add missing columns to picks table
+        const migrations = [
+          'ALTER TABLE picks ADD COLUMN points INTEGER DEFAULT NULL',
+          'ALTER TABLE picks ADD COLUMN isCorrect INTEGER DEFAULT NULL'
+        ]
+
+        const results = []
+        for (const sql of migrations) {
+          try {
+            console.log(`Executing: ${sql}`)
+            await db.db.prepare(sql).run()
+            results.push({ sql, status: 'success' })
+          } catch (error) {
+            console.log(`Migration already applied or error: ${error}`)
+            results.push({ sql, status: 'already_exists_or_error', error: error instanceof Error ? error.message : 'Unknown error' })
+          }
+        }
+
+        return new Response(JSON.stringify({
+          success: true,
+          message: 'Database migration completed',
+          results
+        }), {
+          headers: { 'Content-Type': 'application/json' }
+        })
+      } catch (error) {
+        return new Response(JSON.stringify({
+          error: 'Migration failed',
+          details: error instanceof Error ? error.message : 'Unknown error'
+        }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      }
+    }
+  }
+
   // Manual automation trigger (for testing)
   if (pathname === '/api/automation/trigger') {
     if (method === 'POST') {
