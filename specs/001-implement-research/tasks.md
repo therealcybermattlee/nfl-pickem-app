@@ -279,7 +279,7 @@ This is a web application with:
 
 - [X] T104 [P] [US6] Create Notification component in src/components/Notification.tsx displaying toast-style notifications with dismiss action
 - [X] T105 [P] [US6] Create NotificationProvider in src/contexts/NotificationContext.tsx managing notification queue, auto-dismiss timers
-- [ ] T106 [US6] Integrate useRealTimeUpdates event handling in NotificationProvider showing notifications for GameLockEvent, ScoreUpdateEvent (depends on T059, T105)
+- [X] T106 [US6] Integrate useRealTimeUpdates event handling in NotificationProvider showing notifications for GameLockEvent, ScoreUpdateEvent (depends on T059, T105)
 - [ ] T107 [US6] Add batching logic to NotificationProvider in src/contexts/NotificationContext.tsx combining multiple simultaneous lock events into single notification
 
 ### Frontend - Lock Warning Indicators (US6)
