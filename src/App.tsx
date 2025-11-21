@@ -1,15 +1,18 @@
 import React, { Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Navigation } from './components/Navigation';
 import { ErrorBoundary, AccessibilityProvider, SkipNav, ThemeProvider } from './components';
 import { MobileNavigationSystem } from './components/mobile';
 import { useMobileViewport } from './hooks/useMobileNavigation';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 // Lazy load pages for better performance and code splitting
 const HomePage = React.lazy(() => import('./pages/HomePage').then(module => ({ default: module.HomePage })));
 const GamesPage = React.lazy(() => import('./pages/GamesPage').then(module => ({ default: module.GamesPage })));
 const LeaderboardPage = React.lazy(() => import('./pages/LeaderboardPage').then(module => ({ default: module.LeaderboardPage })));
+const SignInPage = React.lazy(() => import('./pages/SignInPage').then(module => ({ default: module.SignInPage })));
+const SignUpPage = React.lazy(() => import('./pages/SignUpPage').then(module => ({ default: module.SignUpPage })));
 
 // Loading component for suspense fallback
 const PageLoader = () => (
@@ -21,46 +24,104 @@ const PageLoader = () => (
   </div>
 );
 
-function App() {
-  const { isMobile } = useMobileViewport();
+// Protected route component
+interface ProtectedRouteProps {
+  children: React.ReactElement;
+}
 
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return <PageLoader />;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/signin" replace />;
+  }
+
+  return children;
+};
+
+function AppContent() {
+  const { isMobile } = useMobileViewport();
+  const { isAuthenticated } = useAuth();
+
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <SkipNav />
+
+      {/* PWA Install Prompt and Status */}
+      <PWAInstallPrompt />
+
+      {/* Show navigation only when authenticated */}
+      {isAuthenticated && (
+        <>
+          {!isMobile && <Navigation />}
+          {isMobile && <MobileNavigationSystem />}
+        </>
+      )}
+
+      <main
+        id="main-content"
+        className={`container mx-auto px-4 ${
+          isMobile && isAuthenticated ? 'py-4' : 'py-8'
+        }`}
+        role="main"
+        aria-label="Main content"
+        style={{
+          // Add top padding for mobile header when authenticated
+          paddingTop: isMobile && isAuthenticated ? '80px' : undefined
+        }}
+      >
+        <ErrorBoundary>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              {/* Public routes */}
+              <Route path="/signin" element={<SignInPage />} />
+              <Route path="/signup" element={<SignUpPage />} />
+
+              {/* Protected routes */}
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <HomePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/games"
+                element={
+                  <ProtectedRoute>
+                    <GamesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/leaderboard"
+                element={
+                  <ProtectedRoute>
+                    <LeaderboardPage />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </Suspense>
+        </ErrorBoundary>
+      </main>
+    </div>
+  );
+}
+
+function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider>
         <AccessibilityProvider>
-          <div className="min-h-screen bg-background text-foreground">
-            <SkipNav />
-          
-          {/* PWA Install Prompt and Status */}
-          <PWAInstallPrompt />
-          
-          {/* Show desktop navigation on desktop, mobile navigation system on mobile */}
-          {!isMobile && <Navigation />}
-          {isMobile && <MobileNavigationSystem />}
-          
-          <main 
-            id="main-content" 
-            className={`container mx-auto px-4 ${
-              isMobile ? 'py-4' : 'py-8'
-            }`}
-            role="main"
-            aria-label="Main content"
-            style={{
-              // Add top padding for mobile header
-              paddingTop: isMobile ? '80px' : undefined
-            }}
-          >
-            <ErrorBoundary>
-              <Suspense fallback={<PageLoader />}>
-                <Routes>
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/games" element={<GamesPage />} />
-                  <Route path="/leaderboard" element={<LeaderboardPage />} />
-                </Routes>
-              </Suspense>
-            </ErrorBoundary>
-          </main>
-        </div>
+          <AuthProvider>
+            <AppContent />
+          </AuthProvider>
         </AccessibilityProvider>
       </ThemeProvider>
     </ErrorBoundary>

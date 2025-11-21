@@ -483,3 +483,9 @@ wrangler d1 execute nfl-pickem-db --remote --command="SELECT oddsProvider, COUNT
 **Current Status:** Production-ready NFL pick'em app  
 **Architecture:** Modern, scalable, and fully Cloudflare-native  
 **Next Steps:** Time-lock system implementation to complete core functionality
+
+## Active Technologies
+- Cloudflare D1 (SQLite-compatible) with 7 core tables: users, teams, games, picks, game_locks, system_logs, scheduler_logs. Direct SQL queries via prepared statements (no ORM). (001-implement-research)
+
+## Recent Changes
+- 001-implement-research: Added Cloudflare D1 (SQLite-compatible) with 7 core tables: users, teams, games, picks, game_locks, system_logs, scheduler_logs. Direct SQL queries via prepared statements (no ORM).
