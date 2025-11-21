@@ -7,6 +7,7 @@ import { useMobileViewport } from './hooks/useMobileNavigation';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { useRealTimeNotifications } from './hooks/useRealTimeNotifications';
 
 // Lazy load pages for better performance and code splitting
 const HomePage = React.lazy(() => import('./pages/HomePage').then(module => ({ default: module.HomePage })));
@@ -47,6 +48,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 function AppContent() {
   const { isMobile } = useMobileViewport();
   const { isAuthenticated } = useAuth();
+
+  // Enable real-time notifications when authenticated
+  useRealTimeNotifications({
+    enabled: isAuthenticated,
+    fallbackToPolling: true
+  });
 
   return (
     <div className="min-h-screen bg-background text-foreground">
