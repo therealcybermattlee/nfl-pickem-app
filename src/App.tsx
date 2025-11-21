@@ -6,6 +6,7 @@ import { MobileNavigationSystem } from './components/mobile';
 import { useMobileViewport } from './hooks/useMobileNavigation';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 
 // Lazy load pages for better performance and code splitting
 const HomePage = React.lazy(() => import('./pages/HomePage').then(module => ({ default: module.HomePage })));
@@ -120,7 +121,9 @@ function App() {
       <ThemeProvider>
         <AccessibilityProvider>
           <AuthProvider>
-            <AppContent />
+            <NotificationProvider>
+              <AppContent />
+            </NotificationProvider>
           </AuthProvider>
         </AccessibilityProvider>
       </ThemeProvider>
