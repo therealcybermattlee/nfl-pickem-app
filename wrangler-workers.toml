@@ -18,7 +18,6 @@ NODE_ENV = "development"
 # Production environment
 [env.production]
 name = "nfl-pickem-app-production"
-workers_dev = true
 
 [env.production.vars]
 NODE_ENV = "production"

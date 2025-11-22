@@ -1,6 +1,6 @@
 import type { Team, Game, GameStatus, Leaderboard, ApiResponse } from '../types/api';
 
-const API_BASE_URL = 'https://nfl-pickem-app-production.cybermattlee-llc.workers.dev';
+const API_BASE_URL = 'https://nfl-pickem-app-production.m-de6.workers.dev';
 
 export class ApiClient {
   static async get<T>(endpoint: string): Promise<ApiResponse<T>> {

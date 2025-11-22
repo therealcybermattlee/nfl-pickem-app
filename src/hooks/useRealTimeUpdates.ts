@@ -42,8 +42,8 @@ export function useRealTimeUpdates(options: UseRealTimeUpdatesOptions = {}) {
   const mountedRef = useRef(true)
 
   // API base URL
-  const API_BASE = process.env.NODE_ENV === 'production' 
-    ? 'https://nfl-pickem-app-production.cybermattlee-llc.workers.dev'
+  const API_BASE = process.env.NODE_ENV === 'production'
+    ? 'https://nfl-pickem-app-production.m-de6.workers.dev'
     : 'http://localhost:8787'
 
   const cleanup = useCallback(() => {

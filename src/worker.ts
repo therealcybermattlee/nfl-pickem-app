@@ -8,18 +8,41 @@ import {
   EventBroadcaster 
 } from './lib/event-system'
 
-// CORS headers - restrict to known domains
-const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://pickem.cyberlees.dev',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  'Access-Control-Allow-Credentials': 'true',
-  // Security headers
-  'X-Content-Type-Options': 'nosniff',
-  'X-Frame-Options': 'DENY',
-  'X-XSS-Protection': '1; mode=block',
-  'Referrer-Policy': 'strict-origin-when-cross-origin'
+// Allowed origins for CORS
+const allowedOrigins = [
+  'https://pickem.cyberlees.dev',
+  'https://nfl-pickem-app-9gk.pages.dev',
+  'http://localhost:3000',
+  'http://localhost:5173'
+]
+
+// Helper to check if origin is allowed (includes *.pages.dev subdomains)
+function isAllowedOrigin(origin: string | null): boolean {
+  if (!origin) return false
+  if (allowedOrigins.includes(origin)) return true
+  // Allow any subdomain of the Pages project
+  if (origin.endsWith('.nfl-pickem-app-9gk.pages.dev')) return true
+  return false
 }
+
+// Get CORS headers for a specific origin
+function getCorsHeaders(origin: string | null): Record<string, string> {
+  const allowedOrigin = isAllowedOrigin(origin) ? origin! : allowedOrigins[0]
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Credentials': 'true',
+    // Security headers
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'X-XSS-Protection': '1; mode=block',
+    'Referrer-Policy': 'strict-origin-when-cross-origin'
+  }
+}
+
+// Default CORS headers (for backwards compatibility)
+const corsHeaders = getCorsHeaders('https://pickem.cyberlees.dev')
 
 interface Env {
   DB: D1Database
@@ -118,35 +141,39 @@ export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url)
     const { pathname } = url
-    
+
+    // Get dynamic CORS headers based on request origin
+    const origin = request.headers.get('Origin')
+    const dynamicCorsHeaders = getCorsHeaders(origin)
+
     // Initialize database manager
     const db = new D1DatabaseManager(env.DB)
-    
+
     // Handle CORS preflight
     if (request.method === 'OPTIONS') {
-      return new Response(null, { headers: corsHeaders })
+      return new Response(null, { headers: dynamicCorsHeaders })
     }
-    
+
     try {
       // API Routes
       if (pathname.startsWith('/api/')) {
         const response = await handleApiRequest(request, pathname, db, env)
-        Object.entries(corsHeaders).forEach(([key, value]) => {
+        Object.entries(dynamicCorsHeaders).forEach(([key, value]) => {
           response.headers.set(key, value)
         })
         return response
       }
-      
+
       // Serve static files or return 404
       return new Response('Not Found', { status: 404 })
-      
+
     } catch (error) {
       console.error('Worker error:', error)
       return new Response(
-        JSON.stringify({ error: 'Internal Server Error', details: error instanceof Error ? error.message : 'Unknown error' }), 
-        { 
-          status: 500, 
-          headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+        JSON.stringify({ error: 'Internal Server Error', details: error instanceof Error ? error.message : 'Unknown error' }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json', ...dynamicCorsHeaders }
         }
       )
     }
