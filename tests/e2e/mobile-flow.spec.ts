@@ -11,9 +11,10 @@ const mobileDevices = [
 // Test mobile UI flow and interactions
 for (const { name, device } of mobileDevices) {
   test.describe(`Mobile Flow on ${name}`, () => {
-    test.use(device)
-
     test.beforeEach(async ({ page }) => {
+      // Set viewport for mobile device
+      await page.setViewportSize(device.viewport)
+
       // Navigate to the games page
       await page.goto('/games')
       await page.waitForLoadState('networkidle')
@@ -349,8 +350,9 @@ test.describe('Mobile Network Conditions', () => {
 // Performance benchmarks for mobile
 test.describe('Mobile Performance', () => {
   test('component render performance on mobile', async ({ page }) => {
-    test.use(devices['iPhone 12'])
-    
+    // Set viewport for iPhone 12
+    await page.setViewportSize(devices['iPhone 12'].viewport)
+
     // Measure time to interactive
     const startTime = Date.now()
     await page.goto('/games')
@@ -381,8 +383,9 @@ test.describe('Mobile Performance', () => {
 // Accessibility testing on mobile
 test.describe('Mobile Accessibility', () => {
   test('screen reader compatibility on mobile', async ({ page }) => {
-    test.use(devices['iPhone 12'])
-    
+    // Set viewport for iPhone 12
+    await page.setViewportSize(devices['iPhone 12'].viewport)
+
     await page.goto('/games')
     
     // Check ARIA labels are present
@@ -402,8 +405,9 @@ test.describe('Mobile Accessibility', () => {
   })
 
   test('keyboard navigation on mobile browsers', async ({ page }) => {
-    test.use(devices['Pixel 5'])
-    
+    // Set viewport for Pixel 5
+    await page.setViewportSize(devices['Pixel 5'].viewport)
+
     await page.goto('/games')
     
     // Tab navigation should work
@@ -422,8 +426,9 @@ test.describe('Mobile Accessibility', () => {
 test.describe('Mobile Visual Regression Protection', () => {
   mobileDevices.slice(0, 2).forEach(({ name, device }) => {
     test(`${name} - components maintain visual consistency`, async ({ page }) => {
-      test.use(device)
-      
+      // Set viewport for mobile device
+      await page.setViewportSize(device.viewport)
+
       await page.goto('/games')
       await page.waitForLoadState('networkidle')
       
