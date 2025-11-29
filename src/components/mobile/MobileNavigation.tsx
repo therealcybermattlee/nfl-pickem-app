@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
-  HomeIcon,
   TrophyIcon,
   UserGroupIcon,
   ChevronLeftIcon,
   Bars3Icon,
-  XMarkIcon
+  XMarkIcon,
+  ClockIcon
 } from '@heroicons/react/24/outline';
 import {
-  HomeIcon as HomeIconSolid,
   TrophyIcon as TrophyIconSolid,
-  UserGroupIcon as UserGroupIconSolid
+  UserGroupIcon as UserGroupIconSolid,
+  ClockIcon as ClockIconSolid
 } from '@heroicons/react/24/solid';
 import { useMobileNavigation, useMobileViewport } from '../../hooks/useMobileNavigation';
 import { getSafeAreaPadding, triggerHapticFeedback } from '../../utils/mobileHelpers';
@@ -49,15 +49,8 @@ export const MobileBottomNavigation: React.FC<MobileBottomNavigationProps> = ({
   
   const navigationItems = [
     {
-      id: 'home',
-      path: '/',
-      label: 'Home',
-      icon: HomeIcon,
-      activeIcon: HomeIconSolid
-    },
-    {
       id: 'games',
-      path: '/games',
+      path: '/',
       label: 'Games',
       icon: UserGroupIcon,
       activeIcon: UserGroupIconSolid,
@@ -69,6 +62,13 @@ export const MobileBottomNavigation: React.FC<MobileBottomNavigationProps> = ({
       label: 'Leaderboard',
       icon: TrophyIcon,
       activeIcon: TrophyIconSolid
+    },
+    {
+      id: 'history',
+      path: '/history',
+      label: 'History',
+      icon: ClockIcon,
+      activeIcon: ClockIconSolid
     }
   ];
 
@@ -204,9 +204,9 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
   }, [isOpen]);
 
   const menuItems = [
-    { path: '/', label: 'Home', icon: HomeIcon },
-    { path: '/games', label: 'Games', icon: UserGroupIcon },
-    { path: '/leaderboard', label: 'Leaderboard', icon: TrophyIcon }
+    { path: '/', label: 'Games', icon: UserGroupIcon },
+    { path: '/leaderboard', label: 'Leaderboard', icon: TrophyIcon },
+    { path: '/history', label: 'History', icon: ClockIcon }
   ];
 
   const handleMenuItemClick = (path: string) => {

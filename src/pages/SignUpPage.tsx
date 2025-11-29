@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { sanitizeEmail, sanitizeName, sanitizeString } from '../utils/sanitize';
 
 export const SignUpPage: React.FC = () => {
   const navigate = useNavigate();
@@ -54,17 +55,20 @@ export const SignUpPage: React.FC = () => {
     setLoading(true);
 
     try {
+      // Sanitize inputs before sending to API
+      const sanitizedData = {
+        email: sanitizeEmail(formData.email),
+        password: sanitizeString(formData.password),
+        name: sanitizeName(formData.name),
+      };
+
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
       const response = await fetch(`${apiBaseUrl}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-          name: formData.name,
-        }),
+        body: JSON.stringify(sanitizedData),
       });
 
       const data = await response.json();

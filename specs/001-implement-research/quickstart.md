@@ -121,7 +121,7 @@ Open **two terminal windows** (or use tmux/screen):
 npm run dev
 ```
 
-This starts Vite on `http://localhost:3000` with hot module replacement (HMR).
+This starts Vite on `http://localhost:5173` with hot module replacement (HMR).
 
 ### Terminal 2: Workers Dev Server
 ```bash
@@ -131,14 +131,14 @@ npm run workers:dev
 This starts Cloudflare Workers local server on `http://localhost:8787` with API endpoints.
 
 **Verify Both Running**:
-- Frontend: Open http://localhost:3000 in browser
+- Frontend: Open http://localhost:5173 in browser
 - Backend: Visit http://localhost:8787/api/health (should return `{"status":"ok"}`)
 
 ---
 
 ## Step 6: Sign In with Test Account
 
-1. Navigate to http://localhost:3000
+1. Navigate to http://localhost:5173
 2. Click "Sign In"
 3. Enter credentials:
    - **Email**: `test@example.com`

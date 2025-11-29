@@ -27,6 +27,11 @@ export {
   MobileQuickStats
 } from './MobileSelectors';
 
+// Export new mobile-optimized components
+export { MobileGameCard as MobileGameCardV2 } from './MobileGameCard';
+export { MobilePickModal } from './MobilePickModal';
+export type { MobilePickModalProps } from './MobilePickModal';
+
 // Re-export types for external use
 export type {
   Team,

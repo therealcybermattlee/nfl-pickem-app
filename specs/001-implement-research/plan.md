@@ -65,16 +65,28 @@ Implement a family-oriented NFL Pick'em web application where users submit weekl
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-**Status**: No project constitution defined - using default best practices
+**Status**: ⚠️ Plan created before constitution ratification - requires compliance review
 
-Since `.specify/memory/constitution.md` contains only placeholder template content, no specific constitutional gates apply. The plan will follow industry-standard best practices for:
+**Constitution Version**: 1.0.0 (Ratified 2025-11-22)
 
-1. **Testing**: Test coverage for critical paths (authentication, pick submission, scoring)
-2. **Security**: Prepared statements for SQL injection prevention, bcrypt password hashing, JWT token validation
-3. **Observability**: System logs table for automated event tracking, error boundaries in React
-4. **Simplicity**: Direct D1 queries (no ORM overhead), standard REST patterns, minimal abstractions
+### Core Principles Compliance
 
-**Constitutional Compliance**: ✅ PASSED (no violations, no constitution to check against)
+1. **Production-First Testing (Principle I)**: ✅ COMPLIANT - tasks.md line 6 now mandates Playwright testing before declaring features operational. E2E tests required at each user story checkpoint.
+
+2. **Specialized Agent Delegation (Principle II)**: ✅ COMPLIANT - tasks.md lines 27-65 provide comprehensive agent usage guidance by task type with specific examples for frontend-developer, backend-architect, typescript-pro, deployment-engineer, code-reviewer, architect-review, test-automator, and ui-ux-designer.
+
+3. **Data Preservation (Principle III)**: ✅ COMPLIANT - Plan includes pre/post deployment verification (lines 105-110). No destructive migrations planned.
+
+4. **Type Safety & Code Quality (Principle IV)**: ✅ COMPLIANT - TypeScript strict mode enabled (T004), bcrypt hashing (T022), JWT validation (T021), prepared statements (T016).
+
+5. **Task Transparency (Principle V)**: ✅ COMPLIANT - tasks.md lines 67-125 provide detailed TodoWrite usage rules with examples, state management guidelines, and update frequency requirements.
+
+**Constitutional Compliance**: ✅ PASSED - All violations resolved, all guidance provided
+
+**Completed Remediations**:
+- Fix C1: Update tasks.md testing requirement ✅ COMPLETED
+- Fix H3: Add specialized agent usage guidance ✅ COMPLETED (tasks.md lines 27-65)
+- Fix H4: Add TodoWrite tracking guidance ✅ COMPLETED (tasks.md lines 67-125)
 
 ## Project Structure
 

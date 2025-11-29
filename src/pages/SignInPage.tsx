@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { sanitizeEmail, sanitizeString } from '../utils/sanitize';
 
 export const SignInPage: React.FC = () => {
   const navigate = useNavigate();
@@ -14,13 +15,19 @@ export const SignInPage: React.FC = () => {
     setLoading(true);
 
     try {
+      // Sanitize inputs before sending to API
+      const sanitizedData = {
+        email: sanitizeEmail(email),
+        password: sanitizeString(password),
+      };
+
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
       const response = await fetch(`${apiBaseUrl}/api/auth/signin`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(sanitizedData),
       });
 
       const data = await response.json();

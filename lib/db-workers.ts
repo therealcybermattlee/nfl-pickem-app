@@ -432,15 +432,29 @@ export class D1DatabaseManager {
         }
       })
 
-      // Sort by weekly points for week view, then by total points
+      // Sort by weekly points for week view with comprehensive tie-breaking
       return combined.sort((a, b) => {
+        // Primary: Weekly points
         if (b.weeklyPoints !== a.weeklyPoints) {
           return b.weeklyPoints - a.weeklyPoints
         }
-        return b.totalSeasonPoints - a.totalSeasonPoints
+        // Tie-breaker 1: Weekly win percentage
+        if (b.weeklyPercentage !== a.weeklyPercentage) {
+          return b.weeklyPercentage - a.weeklyPercentage
+        }
+        // Tie-breaker 2: Total season points
+        if (b.totalSeasonPoints !== a.totalSeasonPoints) {
+          return b.totalSeasonPoints - a.totalSeasonPoints
+        }
+        // Tie-breaker 3: Season win percentage
+        if (b.seasonPercentage !== a.seasonPercentage) {
+          return b.seasonPercentage - a.seasonPercentage
+        }
+        // Tie-breaker 4: Alphabetical by name for consistent ordering
+        return a.userName.localeCompare(b.userName)
       })
     } else {
-      // Return season-only data
+      // Return season-only data with comprehensive tie-breaking
       return Array.from(seasonData.values()).map((row: any) => ({
         userId: row.userId,
         userName: row.userName || 'Unknown',
@@ -453,7 +467,22 @@ export class D1DatabaseManager {
         weeklyPercentage: 0,
         seasonPercentage: Number(row.seasonPercentage) || 0,
         streak: 0 // TODO: Calculate streak
-      })).sort((a, b) => b.totalSeasonPoints - a.totalSeasonPoints)
+      })).sort((a, b) => {
+        // Primary: Total season points
+        if (b.totalSeasonPoints !== a.totalSeasonPoints) {
+          return b.totalSeasonPoints - a.totalSeasonPoints
+        }
+        // Tie-breaker 1: Season win percentage
+        if (b.seasonPercentage !== a.seasonPercentage) {
+          return b.seasonPercentage - a.seasonPercentage
+        }
+        // Tie-breaker 2: Total picks (more picks = more engagement)
+        if (b.totalPicks !== a.totalPicks) {
+          return b.totalPicks - a.totalPicks
+        }
+        // Tie-breaker 3: Alphabetical by name for consistent ordering
+        return a.userName.localeCompare(b.userName)
+      })
     }
   }
 }

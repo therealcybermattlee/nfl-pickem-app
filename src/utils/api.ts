@@ -2,18 +2,107 @@ import type { Team, Game, GameStatus, Leaderboard, ApiResponse } from '../types/
 
 const API_BASE_URL = 'https://nfl-pickem-app-production.m-de6.workers.dev';
 
+// Session expiration callback for 401 errors
+let sessionExpiredCallback: (() => void) | null = null;
+
 export class ApiClient {
-  static async get<T>(endpoint: string): Promise<ApiResponse<T>> {
+  /**
+   * Register a callback to be called when session expires (401 error)
+   * This allows the AuthContext to trigger sign out
+   */
+  static setSessionExpiredCallback(callback: () => void) {
+    sessionExpiredCallback = callback;
+  }
+
+  /**
+   * Handle session expiration (401 errors)
+   */
+  private static handleSessionExpired() {
+    if (sessionExpiredCallback) {
+      sessionExpiredCallback();
+    }
+  }
+
+  /**
+   * Retry a fetch request with exponential backoff
+   * @param fetchFn - Function that returns a fetch promise
+   * @param maxRetries - Maximum number of retry attempts (default: 3)
+   * @param baseDelay - Base delay in milliseconds (default: 100)
+   */
+  private static async retryWithBackoff<T>(
+    fetchFn: () => Promise<Response>,
+    maxRetries: number = 3,
+    baseDelay: number = 100
+  ): Promise<Response> {
+    let lastError: Error | null = null;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await fetchFn();
+
+        // Don't retry on client errors (4xx) except 429 (rate limit)
+        if (response.status >= 400 && response.status < 500 && response.status !== 429) {
+          return response;
+        }
+
+        // Don't retry on success (2xx, 3xx)
+        if (response.ok || (response.status >= 300 && response.status < 400)) {
+          return response;
+        }
+
+        // Retry on 5xx server errors and 429 rate limit
+        if (attempt < maxRetries) {
+          const delay = baseDelay * Math.pow(2, attempt); // Exponential backoff
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+
+        return response;
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error('Unknown error');
+
+        // Retry on network errors
+        if (attempt < maxRetries) {
+          const delay = baseDelay * Math.pow(2, attempt);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+
+        throw lastError;
+      }
+    }
+
+    throw lastError || new Error('Max retries exceeded');
+  }
+
+  static async get<T>(endpoint: string, token?: string): Promise<ApiResponse<T>> {
     try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`);
-      
+      const headers: Record<string, string> = {};
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await this.retryWithBackoff(
+        () => fetch(`${API_BASE_URL}${endpoint}`, { headers })
+      );
+
+      // Handle session expiration
+      if (response.status === 401) {
+        this.handleSessionExpired();
+        return {
+          success: false,
+          error: 'Session expired. Please sign in again.'
+        };
+      }
+
       if (!response.ok) {
         return {
           success: false,
           error: `HTTP ${response.status}: ${response.statusText}`
         };
       }
-      
+
       const data = await response.json();
       return {
         success: true,
@@ -37,19 +126,30 @@ export class ApiClient {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'POST',
-        headers,
-        body: data ? JSON.stringify(data) : undefined
-      });
-      
+      const response = await this.retryWithBackoff(
+        () => fetch(`${API_BASE_URL}${endpoint}`, {
+          method: 'POST',
+          headers,
+          body: data ? JSON.stringify(data) : undefined
+        })
+      );
+
+      // Handle session expiration
+      if (response.status === 401) {
+        this.handleSessionExpired();
+        return {
+          success: false,
+          error: 'Session expired. Please sign in again.'
+        };
+      }
+
       if (!response.ok) {
         return {
           success: false,
           error: `HTTP ${response.status}: ${response.statusText}`
         };
       }
-      
+
       const responseData = await response.json();
       return {
         success: true,
@@ -82,7 +182,9 @@ export class ApiClient {
   // Time-lock related endpoints
   static async getGameStatus(week: number = 1, season: number = 2025): Promise<ApiResponse<GameStatus[]>> {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/games/status?week=${week}&season=${season}`);
+      const response = await this.retryWithBackoff(
+        () => fetch(`${API_BASE_URL}/api/games/status?week=${week}&season=${season}`)
+      );
       
       if (!response.ok) {
         return {
@@ -136,18 +238,29 @@ export class ApiClient {
       const headers: Record<string, string> = {
         'Authorization': `Bearer ${token}`
       };
-      
-      const response = await fetch(`${API_BASE_URL}/api/picks/live-status?userId=${userId}&week=${week}&season=${season}`, {
-        headers
-      });
-      
+
+      const response = await this.retryWithBackoff(
+        () => fetch(`${API_BASE_URL}/api/picks/live-status?userId=${userId}&week=${week}&season=${season}`, {
+          headers
+        })
+      );
+
+      // Handle session expiration
+      if (response.status === 401) {
+        this.handleSessionExpired();
+        return {
+          success: false,
+          error: 'Session expired. Please sign in again.'
+        };
+      }
+
       if (!response.ok) {
         return {
           success: false,
           error: `HTTP ${response.status}: ${response.statusText}`
         };
       }
-      
+
       const data = await response.json();
       return {
         success: true,

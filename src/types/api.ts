@@ -92,3 +92,14 @@ export interface ApiResponse<T> {
   error?: string;
   success: boolean;
 }
+
+// Family picks display interface
+export interface FamilyPick {
+  userId: string;
+  userName: string;
+  userInitial: string;
+  userColor: string;
+  teamId: string;
+  teamAbbr: string;
+  isCurrentUser: boolean;
+}

@@ -3,33 +3,6 @@
 ## ⚠️ CRITICAL DEVELOPMENT GUIDELINES - READ FIRST! ⚠️
 
 ### 🤖 Primary Assistant Configuration
-**ALWAYS USE CLAUDE SONNET 4 as the primary model** - This provides the best balance of capability, speed, and cost for development tasks.
-
-### 🚀 BE PROACTIVE WITH SPECIALIZED AGENTS - CRITICAL PRIORITY!
-**ALWAYS use specialized agents instead of doing work yourself** when applicable - this is MANDATORY:
-
-- **frontend-developer**: Build React components, implement responsive layouts, and handle client-side state management. Optimizes frontend performance and ensures accessibility. Use PROACTIVELY when creating UI components or fixing frontend issues. **RECENT SUCCESS**: Created complete leaderboard component with responsive design.
-- **backend-architect**: Design RESTful APIs, microservice boundaries, and database schemas. Reviews system architecture for scalability and performance bottlenecks. Use PROACTIVELY when creating new backend services or APIs.
-- **ui-ux-designer**: Create interface designs, wireframes, and design systems. Masters user research, prototyping, and accessibility standards. Use PROACTIVELY for design systems, user flows, or interface optimization.
-- **typescript-pro**: Master TypeScript with advanced types, generics, and strict type safety. Handles complex type systems, decorators, and enterprise-grade patterns. Use PROACTIVELY for TypeScript architecture, type inference optimization, or advanced typing patterns.
-- **deployment-engineer**: Configure CI/CD pipelines, Docker containers, and cloud deployments. Handles GitHub Actions, Kubernetes, and infrastructure automation. Use PROACTIVELY when setting up deployments, containers, or CI/CD workflows. **NEEDED FOR**: Cloudflare Cron triggers and automated scheduler implementation.
-- **code-reviewer**: Expert code review specialist. Proactively reviews code for quality, security, and maintainability. Use immediately after writing or modifying code.
-- **architect-review**: Reviews code changes for architectural consistency and patterns. Use PROACTIVELY after any structural changes, new services, or API modifications. Ensures SOLID principles, proper layering, and maintainability.
-- **api-documenter**: Create OpenAPI/Swagger specs, generate SDKs, and write developer documentation. Handles versioning, examples, and interactive docs. Use PROACTIVELY for API documentation or client library generation.
-- **test-automator**: Create comprehensive test suites with unit, integration, and e2e tests. Sets up CI pipelines, mocking strategies, and test data. Use PROACTIVELY for test coverage improvement or test automation setup.
-- **general-purpose**: General-purpose agent for researching complex questions, searching for code, and executing multi-step tasks. When you are searching for a keyword or file and are not confident that you will find the right match in the first few tries use this agent to perform the search for you.
-
-**Why?** Specialized agents have focused expertise and can often solve problems more efficiently than general development approaches.
-
-**RULE: If the task matches an agent's specialty, use the agent immediately. Don't attempt the work manually first.**
-
-### 🚨 NEVER TEST ON NON-PRODUCTION URLs 🚨
-**CRITICAL RULE - ABSOLUTE REQUIREMENT:**
-- **ALWAYS test fixes on the production site: https://pickem.cyberlees.dev**
-- **NEVER test on preview URLs like *.pages.dev - they have different CORS configurations**
-- **Preview URLs will mislead debugging and waste time**
-- **If production isn't updating, investigate why production isn't updating**
-- **Do not get sidetracked with preview deployments when production is the issue**
 
 ### 📋 Task Management
 - **ALWAYS use TodoWrite** for any multi-step or complex tasks
@@ -50,68 +23,6 @@
 
 **Current State:** FULLY OPERATIONAL - Production environment ready for NFL game day
 
-**Last Updated:** September 21, 2025
-**Development Phase:** PRODUCTION LAUNCHED - Live application serving users
-
-## 🔄 RECENT MAJOR UPDATES (September 21, 2025)
-
-### ✅ Domain Migration Complete
-- **Migration**: Successfully moved from `pickem.leefamilysso.com` → `pickem.cyberlees.dev`
-- **Zero Downtime**: All data preserved, no interruption to user experience
-- **Comprehensive Update**: 32+ files updated across entire codebase
-- **CORS Fixed**: Workers API updated to allow new domain
-- **Testing Verified**: Full functionality confirmed on new domain
-
-### ✅ Production Fixes Applied
-- **Time-Lock Validation**: Fixed pick submission error for locked games
-- **Leaderboard Scoring**: Fixed to only count actually completed games
-- **Vercel Cleanup**: Removed all traces and references (Cloudflare-only now)
-- **Infrastructure**: Streamlined deployment configuration
-
-## 🎉 PRODUCTION LAUNCH COMPLETE (September 2025)
-
-### Live Production Environment:
-- **Production Site**: https://pickem.cyberlees.dev ✅
-- **API Endpoint**: https://nfl-pickem-app-production.cybermattlee-llc.workers.dev ✅
-- **Database**: Cloudflare D1 with time-lock system active ✅
-- **Monitoring**: Automated cron jobs running every 15 minutes ✅
-
-### Key Production Features:
-- **Time-Lock System**: Real-time countdown timers, automatic pick generation ✅
-- **Security**: JWT authentication, API key protection, CORS restrictions ✅
-- **Performance**: Load tested for 100+ concurrent users ✅
-- **Testing**: Comprehensive Playwright end-to-end validation ✅
-- **Mobile Ready**: Responsive design for game-day mobile usage ✅
-
-## What We've Built (Core Achievements)
-
-### ✓ Authentication System
-- **Custom JWT authentication** with bcryptjs password hashing
-- **Test User Available:** `test@example.com` / `password123`
-- **Cloudflare Workers compatible** authentication
-- Clean login/signup UI with proper error handling
-
-### ✓ Database & Data Layer
-- **Direct D1 database operations** (no ORM complexity)
-- **Complete NFL team data** (all 32 teams with UUID primary keys)
-- **ESPN API integration** with 199+ games loaded
-- **Real betting lines** and spreads from official sources
-- **Time-lock system** with game deadline enforcement
-- **Automated scoring** with real-time point calculations
-
-### ✓ Modern UI/UX Foundation
-- **Vite + React** with React Router
-- **Tailwind CSS** with responsive design
-- **Mobile-optimized** for game-day usage
-- **Fast development** with hot reload
-
-### ✓ API Infrastructure
-- **Cloudflare Workers API** with proper D1 bindings
-- **RESTful endpoints** with full CRUD operations
-- **Type-safe operations** with TypeScript
-- **ESPN data sync** endpoint for automated updates
-- **Cron job automation** running every 15 minutes
-- **Time-lock validation** preventing late submissions
 
 ## Quick Start Commands
 
@@ -133,6 +44,43 @@ npm run workers:deploy  # Deploy API
 ## Test Credentials
 - **Email:** test@example.com
 - **Password:** password123
+
+## ⚠️ Environment Configuration - CRITICAL REFERENCE
+
+### Production URLs (AUTHORITATIVE)
+| Service | URL |
+|---------|-----|
+| **Frontend** | `https://pickem.cyberlees.dev` |
+| **Workers API** | `https://nfl-pickem-app-production.m-de6.workers.dev` |
+| **API Sync Endpoint** | `POST /api/odds/sync?api-key=ESPN-SYSTEM-SYNC-2025` |
+
+### Database Configuration
+- **Database Name:** `nfl-pickem-db`
+- **Database ID:** `b85129d8-b27c-4c73-bd34-5314a881394b'
+
+### Wrangler Configuration Files
+| File | Purpose | When to Use |
+|------|---------|-------------|
+| `wrangler-workers.toml` | **PRIMARY** - Workers API deployment | `npm run workers:dev`, `npm run workers:deploy-prod` |
+| `wrangler.toml` | Pages/general config with cron triggers | `wrangler d1 execute` commands |
+
+**IMPORTANT:** Both files MUST have the same database ID. If you see database errors, verify both files match.
+
+### Key Environment Files
+- `.env.production` - Contains `VITE_API_BASE_URL` for frontend builds
+- `src/utils/api.ts` - Hardcoded API base URL (source of truth for frontend)
+
+### Deployment Commands
+```bash
+# Deploy Workers API to production
+npm run workers:deploy-prod
+
+# Deploy frontend to Cloudflare Pages
+npm run build && wrangler pages deploy dist --project-name=nfl-pickem-app
+
+# Sync ESPN data to production
+curl -X POST "https://nfl-pickem-app-production.m-de6.workers.dev/api/odds/sync?api-key=ESPN-SYSTEM-SYNC-2025"
+```
 
 ## Architecture Overview
 
@@ -228,36 +176,39 @@ npm run test:security  # Run security vulnerability testing
 
 # Monitor production
 curl https://pickem.cyberlees.dev/health    # Check frontend health
-curl https://nfl-pickem-app-production.cybermattlee-llc.workers.dev/api/health  # Check API health
+curl https://nfl-pickem-app-production.m-de6.workers.dev/api/health  # Check API health
 
 # Production data sync
-curl -X POST https://nfl-pickem-app-production.cybermattlee-llc.workers.dev/api/odds/sync  # Sync NFL data
+curl -X POST https://nfl-pickem-app-production.m-de6.workers.dev/api/odds/sync  # Sync NFL data
 ```
 
 ### Data Management
 ```bash
 npm run odds:sync      # Sync ESPN API data (dev)
-curl -X POST https://nfl-pickem-app-production.cybermattlee-llc.workers.dev/api/odds/sync  # Production sync
+curl -X POST https://nfl-pickem-app-production.m-de6.workers.dev/api/odds/sync  # Production sync
 ```
 
 ## Current File Structure
 
 ```
 src/
-├── components/       # React UI components
-├── pages/           # Page components (HomePage, GamesPage, etc.)
-├── types/           # TypeScript type definitions
+├── components/       # React UI components (Navigation, GameCard, etc.)
+├── pages/           # Page components (GamesPage, LeaderboardPage, SignInPage, SignUpPage)
+├── types/           # TypeScript type definitions (api.ts with FamilyPick, etc.)
 ├── utils/           # Utility functions and API client
 ├── worker.ts        # Cloudflare Workers API (all endpoints)
-├── App.tsx          # Main React app with routing
+├── App.tsx          # Main React app with routing (/ = GamesPage)
 ├── main.tsx         # Vite entry point
 └── index.css        # Global Tailwind styles
 
 Configuration files:
-├── vite.config.ts      # Vite configuration
-├── wrangler-workers.toml # Workers deployment config
-└── package.json        # Dependencies and scripts
+├── vite.config.ts        # Vite + PWA configuration
+├── wrangler-workers.toml # PRIMARY Workers deployment config
+├── wrangler.toml         # Pages config with cron triggers
+└── package.json          # Dependencies and scripts
 ```
+
+**Note:** HomePage.tsx was removed in Feature 002 - GamesPage now serves as the landing page at root URL (/).
 
 ## Key Technical Decisions
 
@@ -374,7 +325,7 @@ Configuration files:
 
 **Production Deployment:**
 - **Live Site**: https://pickem.cyberlees.dev ✅
-- **API**: https://nfl-pickem-app-production.cybermattlee-llc.workers.dev ✅
+- **API**: https://nfl-pickem-app-production.m-de6.workers.dev ✅
 - **Database**: Cloudflare D1 with time-lock constraints ✅
 - **Automation**: Cron jobs running every 15 minutes ✅
 
@@ -411,7 +362,7 @@ Configuration files:
 - ✅ Sync performance: ~48 seconds for full season
 
 **Production URLs:**
-- **Workers API:** `https://nfl-pickem-app-production.cybermattlee-llc.workers.dev`
+- **Workers API:** `https://nfl-pickem-app-production.m-de6.workers.dev`
 - **Custom Domain:** `https://pickem.cyberlees.dev` (configured in wrangler.toml)
 
 ### CRITICAL ESPN API LEARNINGS - MUST READ! 
@@ -471,13 +422,6 @@ wrangler d1 execute nfl-pickem-db --remote --command="SELECT COUNT(*) FROM games
 wrangler d1 execute nfl-pickem-db --remote --command="SELECT oddsProvider, COUNT(*) FROM games GROUP BY oddsProvider;"
 ```
 
-**Key Success Metrics Achieved:**
-- ✅ Week 1: All 16 games loaded correctly
-- ✅ Full Season: 199 games across 14 weeks  
-- ✅ Data Quality: Real spreads (-1.5, 5.5) and over/unders (47.5, 48.5)
-- ✅ Performance: Complete season sync in under 1 minute
-- ✅ Consistency: Home page and games page show identical data
-
 ### Summary
 
 **Current Status:** Production-ready NFL pick'em app  
@@ -485,7 +429,24 @@ wrangler d1 execute nfl-pickem-db --remote --command="SELECT oddsProvider, COUNT
 **Next Steps:** Time-lock system implementation to complete core functionality
 
 ## Active Technologies
-- Cloudflare D1 (SQLite-compatible) with 7 core tables: users, teams, games, picks, game_locks, system_logs, scheduler_logs. Direct SQL queries via prepared statements (no ORM). (001-implement-research)
+- Cloudflare D1 (SQLite-compatible) with 7 core tables: users, teams, games, picks, game_locks, system_logs, scheduler_logs. Direct SQL queries via prepared statements (no ORM).
+- TypeScript 5.x with strict mode + React 18, React Router, Tailwind CSS, Vite
+- Cloudflare Workers for API, Cloudflare Pages for frontend hosting
+- TypeScript 5.x with strict mode enabled (Vite + React frontend, Cloudflare Workers API) + Cloudflare Workers, D1 Database, bcryptjs for password hashing, JWT for authentication (003-seed-user-data)
+- Cloudflare D1 (SQLite-compatible) with existing tables: users, picks, teams, games (003-seed-user-data)
 
 ## Recent Changes
-- 001-implement-research: Added Cloudflare D1 (SQLite-compatible) with 7 core tables: users, teams, games, picks, game_locks, system_logs, scheduler_logs. Direct SQL queries via prepared statements (no ORM).
+- **002-remove-home-tab** (Nov 2025): Simplified navigation from 3 tabs to 2 tabs (Games + Leaderboard). Added family picks display on GameCard. GamesPage now serves as landing page at root URL (/). HomePage.tsx deleted.
+- **001-implement-research**: Added Cloudflare D1 (SQLite-compatible) with 7 core tables: users, teams, games, picks, game_locks, system_logs, scheduler_logs. Direct SQL queries via prepared statements (no ORM).
+
+## Feature 002: Remove Home Tab - COMPLETE ✅
+
+**Changes Made:**
+- Navigation reduced from 3 tabs to 2 tabs (Games + Leaderboard)
+- Family picks display added to GameCard component (colored initials showing who picked which team)
+- Root URL (/) now renders GamesPage directly
+- /games redirects to / for clean URLs
+- HomePage.tsx deleted (no longer needed)
+
+**New Types Added:**
+- `FamilyPick` interface in `src/types/api.ts` for family picks display

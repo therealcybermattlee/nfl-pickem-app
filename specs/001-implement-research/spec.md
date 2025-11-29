@@ -159,7 +159,7 @@ A user receives real-time notifications when games are about to lock (within 1 h
 
 - **Game Lock**: Represents the locked status of a game. Key attributes include unique identifier, game being locked, timestamp when lock occurred, and reason for lock (scheduled start time reached). Used to enforce time-based pick restrictions.
 
-- **System Log**: Represents automated system events for audit trail. Key attributes include unique identifier, event type (score_update, lock_trigger, pick_generation), status (success/failure), message, detailed information, and timestamp. Helps with troubleshooting and monitoring system health.
+- **System Log**: Represents automated system events for audit trail. Implemented as two tables: `system_logs` (general application events like API errors, data sync results, user actions) and `scheduler_logs` (cron job execution tracking with job start time, completion time, games processed, errors encountered). Key attributes include unique identifier, event type (score_update, lock_trigger, pick_generation), status (success/failure), message, detailed information, and timestamp. Helps with troubleshooting and monitoring system health.
 
 ## Success Criteria *(mandatory)*
 

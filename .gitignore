@@ -26,6 +26,7 @@ yarn-error.log*
 # local env files
 .env*.local
 .env
+.env.seed
 
 
 # typescript
@@ -49,3 +50,27 @@ prisma/migrations/dev/
 .claude_agent_farm_state.json
 .claude_agent_farm_backups/
 agent_farm_report_*.html
+
+# Vite build output
+dist/
+*.local
+
+# Cloudflare Workers
+.dev.vars
+.wrangler/
+wrangler.toml.local
+
+# TypeScript
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Test results
+tests/e2e/results/
+playwright-report/
+test-results/

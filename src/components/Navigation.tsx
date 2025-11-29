@@ -21,18 +21,8 @@ export function Navigation() {
               <Link
                 to="/"
                 className={`${
-                  isActive('/') 
-                    ? 'text-brand border-b-2 border-brand' 
-                    : 'text-muted-foreground hover:text-brand'
-                } px-3 py-2 transition-colors`}
-              >
-                Home
-              </Link>
-              <Link
-                to="/games"
-                className={`${
-                  isActive('/games') 
-                    ? 'text-brand border-b-2 border-brand' 
+                  isActive('/')
+                    ? 'text-brand border-b-2 border-brand'
                     : 'text-muted-foreground hover:text-brand'
                 } px-3 py-2 transition-colors`}
               >
@@ -41,32 +31,32 @@ export function Navigation() {
               <Link
                 to="/leaderboard"
                 className={`${
-                  isActive('/leaderboard') 
-                    ? 'text-brand border-b-2 border-brand' 
+                  isActive('/leaderboard')
+                    ? 'text-brand border-b-2 border-brand'
                     : 'text-muted-foreground hover:text-brand'
                 } px-3 py-2 transition-colors`}
               >
                 Leaderboard
               </Link>
+              <Link
+                to="/history"
+                className={`${
+                  isActive('/history')
+                    ? 'text-brand border-b-2 border-brand'
+                    : 'text-muted-foreground hover:text-brand'
+                } px-3 py-2 transition-colors`}
+              >
+                History
+              </Link>
             </nav>
-            
+
             {/* Mobile Navigation Links */}
             <nav className="flex md:hidden space-x-4" role="navigation" aria-label="Mobile navigation">
               <Link
                 to="/"
                 className={`${
-                  isActive('/') 
-                    ? 'text-brand border-b-2 border-brand' 
-                    : 'text-muted-foreground hover:text-brand'
-                } px-2 py-2 text-sm transition-colors`}
-              >
-                Home
-              </Link>
-              <Link
-                to="/games"
-                className={`${
-                  isActive('/games') 
-                    ? 'text-brand border-b-2 border-brand' 
+                  isActive('/')
+                    ? 'text-brand border-b-2 border-brand'
                     : 'text-muted-foreground hover:text-brand'
                 } px-2 py-2 text-sm transition-colors`}
               >
@@ -75,12 +65,22 @@ export function Navigation() {
               <Link
                 to="/leaderboard"
                 className={`${
-                  isActive('/leaderboard') 
-                    ? 'text-brand border-b-2 border-brand' 
+                  isActive('/leaderboard')
+                    ? 'text-brand border-b-2 border-brand'
                     : 'text-muted-foreground hover:text-brand'
                 } px-2 py-2 text-sm transition-colors`}
               >
                 Leaderboard
+              </Link>
+              <Link
+                to="/history"
+                className={`${
+                  isActive('/history')
+                    ? 'text-brand border-b-2 border-brand'
+                    : 'text-muted-foreground hover:text-brand'
+                } px-2 py-2 text-sm transition-colors`}
+              >
+                History
               </Link>
             </nav>
             

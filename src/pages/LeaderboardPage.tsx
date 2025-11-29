@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ApiClient } from '../utils/api';
 import type { Leaderboard, LeaderboardEntry } from '../types/api';
+import type { RealTimeEvent } from '../types/events';
+import { LeaderboardTable } from '../components/LeaderboardTable';
+import { useRealTimeUpdates } from '../hooks/useRealTimeUpdates';
 
 export function LeaderboardPage() {
   const [leaderboard, setLeaderboard] = useState<Leaderboard | null>(null);
@@ -10,16 +13,22 @@ export function LeaderboardPage() {
   const [season, setSeason] = useState(2025);
   const [viewMode, setViewMode] = useState<'week' | 'season'>('week');
 
-  useEffect(() => {
-    loadLeaderboard();
-  }, [week, season]);
+  // Real-time updates integration
+  const realTimeUpdates = useRealTimeUpdates({
+    fallbackToPolling: true,
+    pollingInterval: 30000, // 30 seconds for leaderboard updates
+  });
 
-  const loadLeaderboard = async () => {
+  const loadLeaderboard = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await ApiClient.getLeaderboard(week, season);
+      // For season view, don't pass week parameter to get season-long data
+      // For week view, pass both week and season for weekly data
+      const response = viewMode === 'season'
+        ? await ApiClient.getLeaderboard(undefined, season)
+        : await ApiClient.getLeaderboard(week, season);
 
       if (response.success && response.data) {
         setLeaderboard(response.data);
@@ -99,63 +108,26 @@ export function LeaderboardPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [week, season, viewMode]);
 
-  const getPositionIcon = (position: number) => {
-    switch (position) {
-      case 1:
-        return '🏆';
-      case 2:
-        return '🥈';
-      case 3:
-        return '🥉';
-      default:
-        return position.toString();
-    }
-  };
+  // Handle real-time events
+  useEffect(() => {
+    const handleRealTimeEvent = (event: RealTimeEvent) => {
+      switch (event.type) {
+        case 'ScoreUpdateEvent':
+        case 'GameCompletedEvent':
+          // Refresh leaderboard when scores update or games complete
+          loadLeaderboard();
+          break;
+      }
+    };
 
-  const getPositionColor = (position: number) => {
-    switch (position) {
-      case 1:
-        return 'text-amber-600 dark:text-amber-400';
-      case 2:
-        return 'text-slate-600 dark:text-slate-400';
-      case 3:
-        return 'text-orange-600 dark:text-orange-400';
-      default:
-        return 'text-slate-700 dark:text-slate-300';
-    }
-  };
+    realTimeUpdates.events.forEach(handleRealTimeEvent);
+  }, [realTimeUpdates.events, loadLeaderboard]);
 
-  const getPositionBg = (position: number) => {
-    switch (position) {
-      case 1:
-        return 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800';
-      case 2:
-        return 'bg-slate-50 dark:bg-slate-900/20 border-slate-200 dark:border-slate-800';
-      case 3:
-        return 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800';
-      default:
-        return 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700';
-    }
-  };
-
-  const getStreakIndicator = (streak?: number) => {
-    if (!streak || streak === 0) return null;
-
-    const isWinning = streak > 0;
-    const streakValue = Math.abs(streak);
-
-    return (
-      <span className={`inline-flex items-center text-xs px-2 py-1 rounded-full font-medium ${
-        isWinning
-          ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
-          : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
-      }`}>
-        {isWinning ? '🔥' : '❄️'} {streakValue}
-      </span>
-    );
-  };
+  useEffect(() => {
+    loadLeaderboard();
+  }, [loadLeaderboard]);
 
   if (loading) {
     return (
@@ -197,7 +169,20 @@ export function LeaderboardPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center space-y-3">
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">NFL Pick'em Leaderboard</h1>
+        <div className="flex items-center justify-center gap-3">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">NFL Pick'em Leaderboard</h1>
+          {/* Live indicator */}
+          <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${
+            realTimeUpdates.isConnected
+              ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+              : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+          }`}>
+            <div className={`w-1.5 h-1.5 rounded-full ${
+              realTimeUpdates.isConnected ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
+            }`}></div>
+            {realTimeUpdates.isConnected ? 'Live' : 'Offline'}
+          </div>
+        </div>
         <div className="text-slate-600 dark:text-slate-400 text-lg">
           Week {leaderboard.week} • {leaderboard.season} Season
         </div>
@@ -211,12 +196,17 @@ export function LeaderboardPage() {
         {/* Week/Season Selector */}
         <div className="flex justify-center gap-4">
           <div className="flex items-center gap-2">
-            <label htmlFor="week" className="text-sm font-medium text-slate-700 dark:text-slate-300">Week:</label>
+            <label htmlFor="week" className={`text-sm font-medium ${viewMode === 'season' ? 'text-slate-400 dark:text-slate-600' : 'text-slate-700 dark:text-slate-300'}`}>Week:</label>
             <select
               id="week"
               value={week}
               onChange={(e) => setWeek(Number(e.target.value))}
-              className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={viewMode === 'season'}
+              className={`px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                viewMode === 'season'
+                  ? 'bg-slate-100 dark:bg-slate-900 text-slate-400 dark:text-slate-600 cursor-not-allowed'
+                  : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100'
+              }`}
             >
               {Array.from({ length: 18 }, (_, i) => i + 1).map(w => (
                 <option key={w} value={w}>Week {w}</option>
@@ -264,115 +254,14 @@ export function LeaderboardPage() {
         </div>
       </div>
 
-      {/* Leaderboard Cards */}
-      <div className="space-y-3">
-        {leaderboard.entries.map((entry: LeaderboardEntry, index: number) => {
-          const displayPoints = viewMode === 'week' ? (entry.weeklyPoints || 0) : (entry.totalSeasonPoints || 0);
-          const displayPercentage = viewMode === 'week' ? (entry.weeklyPercentage || 0) : (entry.seasonPercentage || 0);
-          const displayPicks = viewMode === 'week' ? (entry.weeklyPicks || 0) : entry.totalPicks;
-          const correctPicks = Math.round((displayPercentage / 100) * displayPicks);
-
-          return (
-            <div
-              key={entry.user.id}
-              className={`p-4 rounded-xl border-2 shadow-sm hover:shadow-md transition-shadow ${getPositionBg(entry.position)}`}
-            >
-              {/* Mobile and Desktop Layout */}
-              <div className="flex items-center justify-between">
-                {/* Left: Position and User */}
-                <div className="flex items-center gap-4">
-                  <div className={`text-3xl font-bold ${getPositionColor(entry.position)} min-w-[3rem] text-center`}>
-                    {getPositionIcon(entry.position)}
-                  </div>
-                  <div>
-                    <div className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                      {entry.user.displayName || entry.user.name}
-                    </div>
-                    <div className="text-sm text-slate-600 dark:text-slate-400">
-                      {entry.user.email}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right: Points and Streak */}
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                      {displayPoints}
-                    </div>
-                    <div className="text-sm text-slate-600 dark:text-slate-400">
-                      {viewMode === 'week' ? 'Week Points' : 'Season Points'}
-                    </div>
-                  </div>
-                  {getStreakIndicator(entry.streak)}
-                </div>
-              </div>
-
-              {/* Stats Grid */}
-              <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-slate-200 dark:border-slate-700">
-                <div className="text-center">
-                  <div className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                    {correctPicks}-{displayPicks - correctPicks}
-                  </div>
-                  <div className="text-xs text-slate-500 dark:text-slate-500">
-                    {viewMode === 'week' ? 'Week Record' : 'Season Record'}
-                  </div>
-                </div>
-
-                <div className="text-center">
-                  <div className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                    {displayPercentage.toFixed(1)}%
-                  </div>
-                  <div className="text-xs text-slate-500 dark:text-slate-500">
-                    {viewMode === 'week' ? 'Week Win %' : 'Season Win %'}
-                  </div>
-                </div>
-
-                {/* Show the opposite metric as secondary info */}
-                {viewMode === 'week' ? (
-                  <>
-                    <div className="text-center">
-                      <div className="text-lg font-medium text-slate-700 dark:text-slate-300">
-                        {entry.totalSeasonPoints || 0}
-                      </div>
-                      <div className="text-xs text-slate-500 dark:text-slate-500">
-                        Season Total
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-medium text-slate-700 dark:text-slate-300">
-                        {(entry.seasonPercentage || 0).toFixed(1)}%
-                      </div>
-                      <div className="text-xs text-slate-500 dark:text-slate-500">
-                        Season Win %
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="text-center">
-                      <div className="text-lg font-medium text-slate-700 dark:text-slate-300">
-                        {entry.weeklyPoints || 0}
-                      </div>
-                      <div className="text-xs text-slate-500 dark:text-slate-500">
-                        Week {week} Points
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-medium text-slate-700 dark:text-slate-300">
-                        {(entry.weeklyPercentage || 0).toFixed(1)}%
-                      </div>
-                      <div className="text-xs text-slate-500 dark:text-slate-500">
-                        Week {week} Win %
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      {/* Leaderboard Table */}
+      <LeaderboardTable
+        entries={leaderboard.entries}
+        isLoading={loading}
+        emptyMessage="No leaderboard data available"
+        viewMode={viewMode}
+        week={week}
+      />
 
       {/* Stats Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">

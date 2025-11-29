@@ -10,11 +10,11 @@ import { NotificationProvider } from './contexts/NotificationContext';
 import { useRealTimeNotifications } from './hooks/useRealTimeNotifications';
 
 // Lazy load pages for better performance and code splitting
-const HomePage = React.lazy(() => import('./pages/HomePage').then(module => ({ default: module.HomePage })));
 const GamesPage = React.lazy(() => import('./pages/GamesPage').then(module => ({ default: module.GamesPage })));
 const LeaderboardPage = React.lazy(() => import('./pages/LeaderboardPage').then(module => ({ default: module.LeaderboardPage })));
 const SignInPage = React.lazy(() => import('./pages/SignInPage').then(module => ({ default: module.SignInPage })));
 const SignUpPage = React.lazy(() => import('./pages/SignUpPage').then(module => ({ default: module.SignUpPage })));
+const PickHistoryPage = React.lazy(() => import('./pages/PickHistoryPage').then(module => ({ default: module.PickHistoryPage })));
 
 // Loading component for suspense fallback
 const PageLoader = () => (
@@ -48,6 +48,21 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 function AppContent() {
   const { isMobile } = useMobileViewport();
   const { isAuthenticated } = useAuth();
+  const [isOnline, setIsOnline] = React.useState(navigator.onLine);
+
+  // Track online/offline status
+  React.useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   // Enable real-time notifications when authenticated
   useRealTimeNotifications({
@@ -58,6 +73,22 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SkipNav />
+
+      {/* Offline Banner */}
+      {!isOnline && (
+        <div
+          className="fixed top-0 left-0 right-0 z-50 bg-yellow-600 dark:bg-yellow-700 text-white px-4 py-2 text-center text-sm font-medium shadow-lg"
+          role="alert"
+          aria-live="assertive"
+        >
+          <div className="flex items-center justify-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414" />
+            </svg>
+            <span>You are currently offline. Some features may not be available.</span>
+          </div>
+        </div>
+      )}
 
       {/* PWA Install Prompt and Status */}
       <PWAInstallPrompt />
@@ -94,23 +125,27 @@ function AppContent() {
                 path="/"
                 element={
                   <ProtectedRoute>
-                    <HomePage />
+                    <GamesPage />
                   </ProtectedRoute>
                 }
               />
               <Route
                 path="/games"
-                element={
-                  <ProtectedRoute>
-                    <GamesPage />
-                  </ProtectedRoute>
-                }
+                element={<Navigate to="/" replace />}
               />
               <Route
                 path="/leaderboard"
                 element={
                   <ProtectedRoute>
                     <LeaderboardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/history"
+                element={
+                  <ProtectedRoute>
+                    <PickHistoryPage />
                   </ProtectedRoute>
                 }
               />

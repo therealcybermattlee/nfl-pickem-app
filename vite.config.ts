@@ -13,7 +13,7 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/nfl-pickem-app-production\.cybermattlee-llc\.workers\.dev\/api\//,
+            urlPattern: /^https:\/\/nfl-pickem-app-production\.m-de6\.workers\.dev\/api\//,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-cache',
@@ -28,7 +28,7 @@ export default defineConfig({
             },
           },
           {
-            urlPattern: /^https:\/\/pickem\.leefamilysso\.com\//,
+            urlPattern: /^https:\/\/pickem\.cyberlees\.dev\//,
             handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'static-resources',
