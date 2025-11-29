@@ -1,10 +1,14 @@
 import { chromium, FullConfig } from '@playwright/test'
 import path from 'path'
 import fs from 'fs'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 async function globalSetup(config: FullConfig) {
   console.log('🚀 Starting NFL Pick\'em E2E Test Setup...')
-  
+
   // Create storage states directory
   const storageStatesDir = path.join(__dirname, 'storage-states')
   if (!fs.existsSync(storageStatesDir)) {

@@ -95,20 +95,21 @@ export default defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
-  webServer: [
-    {
-      command: 'npm run dev',
-      url: 'http://127.0.0.1:5173',
-      reuseExistingServer: !process.env.CI,
-      timeout: 120000
-    },
-    {
-      command: 'npm run workers:dev',
-      url: 'http://127.0.0.1:8787',
-      reuseExistingServer: !process.env.CI,
-      timeout: 120000
-    }
-  ],
+  // Note: Start servers manually with: npm run dev && npm run workers:dev
+  // webServer: [
+  //   {
+  //     command: 'npm run dev',
+  //     url: 'http://127.0.0.1:5173',
+  //     reuseExistingServer: !process.env.CI,
+  //     timeout: 120000
+  //   },
+  //   {
+  //     command: 'npm run workers:dev',
+  //     url: 'http://127.0.0.1:8787',
+  //     reuseExistingServer: !process.env.CI,
+  //     timeout: 120000
+  //   }
+  // ],
 
   /* Global setup and teardown */
   globalSetup: './tests/e2e/global-setup.ts',

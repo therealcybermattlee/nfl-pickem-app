@@ -1,20 +1,24 @@
 import { FullConfig } from '@playwright/test'
 import fs from 'fs'
 import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 async function globalTeardown(config: FullConfig) {
   console.log('🧹 Starting NFL Pick\'em E2E Test Teardown...')
-  
+
   try {
     // Clean up temporary storage states if needed
     const storageStatesDir = path.join(__dirname, 'storage-states')
-    
+
     // Optional: Clean up storage states (comment out if you want to inspect them)
     // if (fs.existsSync(storageStatesDir)) {
     //   fs.rmSync(storageStatesDir, { recursive: true, force: true })
     //   console.log('✅ Storage states cleaned up')
     // }
-    
+
     // Log test completion metrics
     const resultsDir = path.join(__dirname, 'results')
     if (fs.existsSync(resultsDir)) {
