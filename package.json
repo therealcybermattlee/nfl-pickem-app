@@ -48,6 +48,7 @@
     "prod:health": "echo 'Testing Frontend:' && curl -s -o /dev/null -w 'Frontend Status: %{http_code}\\n' https://pickem.cyberlees.dev && echo 'Testing API:' && curl -s https://nfl-pickem-app-production.m-de6.workers.dev/api/teams | head -1",
     "prod:sync": "curl -X POST https://nfl-pickem-app-production.m-de6.workers.dev/api/odds/sync",
     "prod:deploy": "npm run build && npm run workers:deploy && npm run prod:health",
+    "hash-password": "node scripts/hash-password.js",
     "prod:monitor": "echo 'Production Monitoring:' && npm run prod:health && echo 'Database Status:' && wrangler d1 execute nfl-pickem-db --remote --command=\"SELECT COUNT(*) as users FROM users; SELECT COUNT(*) as games FROM games WHERE season = 2025; SELECT COUNT(*) as picks FROM picks;\"",
     "prod:db:status": "wrangler d1 execute nfl-pickem-db --remote --command=\"SELECT COUNT(*) as users FROM users; SELECT COUNT(*) as games FROM games WHERE season = 2025; SELECT COUNT(*) as picks FROM picks; SELECT oddsProvider, COUNT(*) as count FROM games WHERE season = 2025 GROUP BY oddsProvider;\"",
     "prod:logs": "wrangler tail nfl-pickem-app-production --format=pretty",
