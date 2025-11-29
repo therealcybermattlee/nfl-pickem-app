@@ -108,12 +108,12 @@ const GameResultInner = (props: GameResultProps) => {
 
   const rows = [
     {
-      team: homeTeam,
-      score: homeScore,
-    },
-    {
       team: awayTeam,
       score: awayScore,
+    },
+    {
+      team: homeTeam,
+      score: homeScore,
     },
   ];
 
