@@ -71,16 +71,43 @@ npm run workers:deploy  # Deploy API
 - `src/utils/api.ts` - Hardcoded API base URL (source of truth for frontend)
 
 ### Deployment Commands
+
+#### Production Deployment (CRITICAL - READ FIRST)
+
+**IMPORTANT:** Cloudflare Pages Production environment is configured to use the `main` branch.
+- ✅ Deploy from `main` branch to update Production environment
+- ❌ DO NOT use `--branch=production` (creates Preview deployments only)
+- ✅ Merge feature branches to `main` first, then deploy
+
 ```bash
-# Deploy Workers API to production
+# 1. Ensure you're on main branch with latest changes
+git checkout main
+git pull origin main
+
+# 2. Build the frontend
+npm run build
+
+# 3. Deploy Workers API to production
 npm run workers:deploy-prod
 
-# Deploy frontend to Cloudflare Pages
-npm run build && wrangler pages deploy dist --project-name=nfl-pickem-app
+# 4. Deploy frontend to Cloudflare Pages Production
+# This updates the Production environment (pickem.cyberlees.dev)
+wrangler pages deploy dist --project-name=nfl-pickem-app --branch=main
 
-# Sync ESPN data to production
-curl -X POST "https://nfl-pickem-app-production.m-de6.workers.dev/api/odds/sync?api-key=ESPN-SYSTEM-SYNC-2025"
+# 5. Verify production deployment
+curl -s https://pickem.cyberlees.dev | grep -o '<title>.*</title>'
+curl -s https://nfl-pickem-app-production.cybermattlee-llc.workers.dev/api/teams | jq 'length'
+
+# 6. Sync ESPN data to production (if needed)
+curl -X POST "https://nfl-pickem-app-production.cybermattlee-llc.workers.dev/api/odds/sync" \
+  -H "Content-Type: application/json" -d '{}'
 ```
+
+**Deployment Verification Checklist:**
+- [ ] Frontend: https://pickem.cyberlees.dev returns HTTP 200
+- [ ] API: Returns 32 teams from `/api/teams`
+- [ ] Cloudflare Pages dashboard shows new deployment in Production environment (not Preview)
+- [ ] Cron triggers active: `wrangler deployments list --name nfl-pickem-app-production`
 
 ## Architecture Overview
 
@@ -293,6 +320,11 @@ Configuration files:
 2. **Auth 401 errors** → Verify JWT tokens and user credentials
 3. **CORS issues** → Ensure Workers API has proper CORS headers
 4. **Build errors** → Check TypeScript types and Vite config
+5. **Deployment not updating Production** →
+   - ❌ **WRONG:** Using `--branch=production` creates Preview deployments only
+   - ✅ **CORRECT:** Deploy from `main` branch: `wrangler pages deploy dist --project-name=nfl-pickem-app --branch=main`
+   - Check Cloudflare Pages dashboard to verify deployment appears in Production environment (not Preview)
+   - Production environment is configured to use `main` branch, not `production` branch
 
 ### Development Tips
 - Use `wrangler d1 execute --remote` to check database state
