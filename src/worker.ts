@@ -11,7 +11,7 @@ import {
 // Allowed origins for CORS
 const allowedOrigins = [
   'https://pickem.cyberlees.dev',
-  'https://nfl-pickem-app-9gk.pages.dev',
+  'https://nfl-pickem-app.pages.dev',
   'http://localhost:3000',
   'http://localhost:5173'
 ]
@@ -20,8 +20,8 @@ const allowedOrigins = [
 function isAllowedOrigin(origin: string | null): boolean {
   if (!origin) return false
   if (allowedOrigins.includes(origin)) return true
-  // Allow any subdomain of the Pages project
-  if (origin.endsWith('.nfl-pickem-app-9gk.pages.dev')) return true
+  // Allow any subdomain of the Pages project (e.g., preview deployments)
+  if (origin.endsWith('.nfl-pickem-app.pages.dev')) return true
   return false
 }
 
@@ -2556,17 +2556,21 @@ async function awardPointsForCompletedGame(db: D1DatabaseManager, completedGame:
  * Determine the winner team ID based on scores
  */
 function getWinnerTeamId(espnGame: any, ourGame: any): string | null {
-  if (!espnGame.homeScore || !espnGame.awayScore) return null
-  
+  // Check for null/undefined, but allow 0 as a valid score (shutouts)
+  if (espnGame.homeScore === null || espnGame.homeScore === undefined ||
+      espnGame.awayScore === null || espnGame.awayScore === undefined) {
+    return null
+  }
+
   const homeScore = parseInt(espnGame.homeScore)
   const awayScore = parseInt(espnGame.awayScore)
-  
+
   if (homeScore > awayScore) {
     return ourGame.homeTeamId
   } else if (awayScore > homeScore) {
     return ourGame.awayTeamId
   }
-  
+
   // Tie game - no winner
   return null
 }
