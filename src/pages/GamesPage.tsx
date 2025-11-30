@@ -216,21 +216,25 @@ export function GamesPage() {
     const handleRealTimeEvent = (event: RealTimeEvent) => {
       switch (event.type) {
         case 'GameLockEvent':
-          // Refresh games when a game locks
-          fetchGames();
+          // Update specific game lock status (avoid full page re-render)
+          setGames(prev => prev.map(game =>
+            game.id === event.payload.gameId
+              ? { ...game, isLocked: true, lockTime: event.payload.lockTime }
+              : game
+          ));
           break;
         case 'ScoreUpdateEvent':
           // Update specific game score
-          setGames(prev => prev.map(game => 
-            game.id === event.payload.gameId 
+          setGames(prev => prev.map(game =>
+            game.id === event.payload.gameId
               ? { ...game, homeScore: event.payload.homeScore, awayScore: event.payload.awayScore }
               : game
           ));
           break;
         case 'GameCompletedEvent':
           // Mark game as completed
-          setGames(prev => prev.map(game => 
-            game.id === event.payload.gameId 
+          setGames(prev => prev.map(game =>
+            game.id === event.payload.gameId
               ? { ...game, isCompleted: true, winnerTeamId: event.payload.winnerId }
               : game
           ));
@@ -245,7 +249,7 @@ export function GamesPage() {
     };
 
     realTimeUpdates.events.forEach(handleRealTimeEvent);
-  }, [realTimeUpdates.events, fetchGames, currentUserId]);
+  }, [realTimeUpdates.events, currentUserId]);
 
   useEffect(() => {
     fetchGames();

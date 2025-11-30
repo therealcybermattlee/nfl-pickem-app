@@ -90,21 +90,21 @@ const PickSelectorInner = (props: PickSelectorProps) => {
   const options = useMemo(
     () => [
       {
-        id: game.homeTeam.id,
-        label: game.homeTeam.name,
-        abbr: game.homeTeam.abbreviation,
-        logoUrl: game.homeTeam.logoUrl,
-        side: 'Home' as const,
-      },
-      {
         id: game.awayTeam.id,
         label: game.awayTeam.name,
         abbr: game.awayTeam.abbreviation,
         logoUrl: game.awayTeam.logoUrl,
         side: 'Away' as const,
       },
+      {
+        id: game.homeTeam.id,
+        label: game.homeTeam.name,
+        abbr: game.homeTeam.abbreviation,
+        logoUrl: game.homeTeam.logoUrl,
+        side: 'Home' as const,
+      },
     ],
-    [game.homeTeam, game.awayTeam]
+    [game.awayTeam, game.homeTeam]
   );
 
   const groupRef = useRef<HTMLDivElement>(null);

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { sanitizeEmail, sanitizeString } from '../utils/sanitize';
+import { useAuth } from '../contexts/AuthContext';
 
 export const SignInPage: React.FC = () => {
   const navigate = useNavigate();
+  const { signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -16,29 +18,11 @@ export const SignInPage: React.FC = () => {
 
     try {
       // Sanitize inputs before sending to API
-      const sanitizedData = {
-        email: sanitizeEmail(email),
-        password: sanitizeString(password),
-      };
+      const sanitizedEmail = sanitizeEmail(email);
+      const sanitizedPassword = sanitizeString(password);
 
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
-      const response = await fetch(`${apiBaseUrl}/api/auth/signin`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(sanitizedData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Sign in failed');
-      }
-
-      // Store token in localStorage
-      localStorage.setItem('authToken', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      // Use AuthContext signIn method
+      await signIn(sanitizedEmail, sanitizedPassword);
 
       // Redirect to home page
       navigate('/');
